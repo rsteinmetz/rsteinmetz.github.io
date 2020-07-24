@@ -4,8 +4,14 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script>
             $(document).ready(function() {
-                $("#scene").load("stage2.html")
+                var index = 1;
+                $("#scene").load("stage1.html")
+
+                $(".sceneSelectorButton").click(function(e) {
+                    $("#scene").load(`stage${e.target.innerHTML}.html`)
+                })
             })
+
         </script>
     </head>
     <body>
