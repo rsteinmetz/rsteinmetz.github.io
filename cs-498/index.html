@@ -1,6 +1,7 @@
 <html>
     <head>
         <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="./scripts/lodash.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script>
             $(document).ready(function() {
@@ -8,25 +9,87 @@
                 $("#scene").load("stage1.html")
 
                 $(".sceneSelectorButton").click(function(e) {
-                    $("#scene").load(`stage${e.target.innerHTML}.html`)
+                    if (e.target.innerHTML == "Next") {
+                        var sceneNumber = parseInt($(".sceneSelectorButtonSelected").attr("scene"))
+                        $(`#sceneButton${sceneNumber + 1}`).click()
+                    } else {
+                        $("#scene").load(`stage${e.target.innerHTML}.html`)
+                        $(".sceneSelectorButton").removeClass("sceneSelectorButtonSelected")
+                        $(`#sceneButton${e.target.innerHTML}`).addClass("sceneSelectorButtonSelected")
+                    }
                 })
             })
 
         </script>
     </head>
     <body>
+        <div class="title-bar">
+            Electric Vehicle Popularity and Benefits
+        </div>
         <div id="sceneSelector">
-            <button class="sceneSelectorButton">1</button>
-            <button class="sceneSelectorButton">2</button>
-            <button class="sceneSelectorButton">3</button>
-            <button class="sceneSelectorButton">4</button>
+            <button id="sceneButton1" scene="1" class="sceneSelectorButton sceneSelectorButtonSelected">1</button>
+            <button id="sceneButton2" scene="2" class="sceneSelectorButton">2</button>
+            <button id="sceneButton3" scene="3" class="sceneSelectorButton">3</button>
+            <button id="nextButton" class="sceneSelectorButton">Next</button>
         </div>
         <div id="scene">
 
         </div>
         <style>
+
+            .sceneSelector {
+                padding-bottom: 50px;
+            }
+
             .sceneSelectorButton {
                 width: 100px
+            }
+
+            .sceneSelectorButtonSelected {
+                background-color: lightblue;
+            }
+
+            #tooltip {
+                opacity: 0; 
+                position: absolute;
+                background-color: lightgray;
+                border: 1px solid black;
+                min-width: 200px;
+                min-height: 100px;
+                padding: 10px;
+            }
+
+            #annotation {
+                opacity: 0;
+                position: absolute;
+                background-color: lightblue;
+                border: 1px solid black;
+                padding: 10px;
+                left: 900px; 
+                top: 700px; 
+                max-width: 350px; 
+            }
+
+            .title-bar {
+                text-align: center;
+                font-size: xx-large;
+                width: 100%;
+            }
+
+            .title-description {
+                text-align: center;
+                font-size: large;
+                width: 100%;
+                padding-bottom: 25px;
+            }
+
+            #dateRange {
+                width: 500px;
+            }
+
+            .slideIntroText {
+                padding-top: 25px;
+                padding-bottom: 25px;
             }
         </style>
     </body>

@@ -1,3 +1,205 @@
 <div>
-    Stage 2
+    <div class="slideIntroText">
+        How many different vehicle manufactueers created Electric Vehicles?
+    </div>
+    <span id="dateRangeText">1998</span>
+    <input type="range" min="1998" max="2020" value="1998" class="slider" id="dateRange"/>
+    <div id="tooltip"></div>
+    <div id="annotation"></div>
+    <div id="scene2">
+    </div>
+    <script>
+        $(document).ready(function() {
+            var margin = {
+                top: 30,
+                right: 30,
+                bottom: 70,
+                left: 60
+            }
+            var width = 1600 - margin.left - margin.right
+            var height = 900 - margin.top - margin.bottom 
+            var data = []
+            var filteredData = []
+            var dateSlider = document.getElementById("dateRange")
+            var dateRangeText = document.getElementById("dateRangeText")
+            var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
+            var annotation = d3.select("#annotation").attr("pointer-events", "none")
+
+            dateSlider.oninput = function() {
+            dateRangeText.innerHTML = this.value
+
+            filteredData = data.filter((n) => { return n.year.toString() == `${this.value.toString()}` })
+            updateChart()
+        }
+
+        // initialize svg canvas
+        var svg = d3
+            .select("#scene2")
+            .append("svg")
+            .attr("id", "graph")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            updateChart = function() {
+
+                svg.exit().remove()
+                d3.select("g").selectAll("*").remove()
+
+                if (parseInt(dateRangeText.innerHTML) == 1998) {
+                    annotation
+                    .style("opacity", 1)
+                    .html(`From our last slide we saw that 1998 was the first year an Electric Vehicle was released.`)
+                } else if (parseInt(dateRangeText.innerHTML) >= 2004 && parseInt(dateRangeText.innerHTML) < 2008) {
+                    // add another notation to the screen indicating there were no EVs made during this year
+                    annotation
+                    .style("opacity", 1)
+                    .html(`After the first Electric Vehicle, there were a few years where no new Electric Vehicles were produced.`)
+                } else if (parseInt(dateRangeText.innerHTML) == 2008) {
+                    annotation
+                    .style("opacity", 1)
+                    .html(`In 2008, one new Electric Vehiclde was released. They weren't quite ready to catch on yet.`)
+                } else if (parseInt(dateRangeText.innerHTML) > 2008 && parseInt(dateRangeText.innerHTML) < 2011) {
+                    annotation
+                    .style("opacity", 1)
+                    .html(`Again, no new Electric Vehicldes in 2009 or 2010.`)
+                } else if (parseInt(dateRangeText.innerHTML) == 2012) { 
+                    annotation
+                    .style("opacity", 1)
+                    .html(`In 2012 we can see eight different car manufactuerers were producing electric vehicles. We can also see that compared to the prior iterations the efficency is increasing as well.`)
+                } else if (parseInt(dateRangeText.innerHTML) == 2020) {
+                    annotation
+                    .style("opacity", 1)
+                    .html(`Today we see that there are many new electric vehicles being produced. We do notice that the efficency hasn't increased very much since 2012, indicating that we are hitting a plateau on the efficency increases in vehicles.`)
+                } else {
+                    annotation
+                    .style("opacity", 0)
+                }
+
+                var fuelTypeCount = []
+                var legendObject = []
+                var unique = [...new Set(filteredData.map(item => item.make))];
+                for(var i = 0; i < unique.length; i++) {
+                    var count = 0
+                    for(var n = 0; n < filteredData.length; n++) {
+                        if (unique[i] == filteredData[n].fuelType1) {
+                            count = count + 1
+                        }
+                    }
+                    legendObject.push({ make: unique[i], count: count })
+                }
+                graphData = fuelTypeCount.sort((function(a,b) { return b.count > a.count ? 1 : -1}))
+                temp = legendObject.slice()
+                legendObject = temp.sort((a,b) => (a.make > b.make) ? 1 : ((b.make > a.make) ? -1 : 0)); 
+
+                // create legend
+                var uniqueAll = [...new Set(legendObject.map(item => item.make))];
+                var color = d3.scaleOrdinal()
+                .domain(uniqueAll)
+                .range(d3.schemeTableau10)
+
+                svg.append("text")      // text label for the x axis
+                .attr("x", 850 )
+                .attr("y", 850 )
+                .style("text-anchor", "middle")
+                .text("City Efficency");
+
+                // create x axis
+                var x = 
+                    d3
+                        .scaleLinear()
+                        .range([0, width])
+                        .domain([20,224.8])
+
+                    // add x axis ucity
+                    svg.append("g")
+                        .attr("transform", "translate(0, " + height + ")")
+                        .call(d3.axisBottom(x))
+                        .selectAll("text")
+                        .attr("transform", "translate(-10,0)rotate(-45)")
+                        .style("text-anchor", "end")
+
+                        svg.append("text")
+                        .attr("transform", "rotate(-90)")
+                        .attr("y", 0 - margin.left)
+                        .attr("x",0 - (height / 2))
+                        .attr("dy", "1em")
+                        .style("text-anchor", "middle")
+                        .text("Highway Efficency");
+
+                    // create y axis
+                    var y = d3.scaleLinear()
+                        .domain([0,190])
+                        .range([height, 0]);
+
+                    // add y axis
+                    svg.append("g").call(d3.axisLeft(y))
+
+                    // remove existing
+                    svg.selectAll("rect")
+                    .data([])
+                    .exit()
+                    .remove()
+
+                    // create bars
+                    svg.selectAll("rect")
+                    .data([])
+                    .exit()
+                    .remove()
+                    .data(filteredData)
+                    .enter()
+                    .append("circle")
+                    .on("mouseover", function(d,i) {
+                        tooltip
+                        .style("opacity", 1)
+                        .style("left", (d3.event.pageX)+"px")
+                        .style("top", (d3.event.pageY+100)+"px")
+                        .html(`Make: ${d.make}<br/>Model: ${d.model}<br/>City Efficency: ${d.UCity}<br/>Highway Efficency: ${d.UHighway}`)
+                    })
+                    .on("mouseout", function(d,i) {
+                        tooltip
+                        .style("opacity", 0)
+                    })
+                    .attr("cx", function(d) { return x(d.UCity)})
+                    .attr("cy", function(d) { return y(d.UHighway)})
+                    .attr("r", 10)
+                    .style("fill", function(d) { return color(d.make) })
+
+                    var size = 20
+                    svg
+                    .selectAll("mydots")
+                    .data(legendObject)
+                    .enter()
+                    .append("rect")
+                    .attr("x", 1200 + size*1.2)
+                    .attr("y", function(d,i){ return 400+(i*(size+5))}) // 100 is where the first dot appears. 25 is the distance between dots
+                    .attr("width", size)
+                    .attr("height", size)
+                    .style("fill", function(d) { return color(d.make) })
+        
+                    svg
+                    .selectAll("mylabels")
+                    .data(legendObject)
+                    .enter()
+                    .append("text")
+                    .attr("x", 1225 + size)
+                    .attr("y", function(d, i) { return 400+(i*(size+5) + (size/2))})
+                    .style("fill", function(d) { return color(d.make) })
+                    .text(function(d) { return d.make})
+                    .attr("text-anchor", "left")
+                    .style("alignment-baseline", "middle")
+            }
+
+            // grab dataset
+            d3
+            .csv("https://raw.githubusercontent.com/rsteinmetz/rsteinmetz.github.io/master/cs-498/data/vehicles.csv")
+            .then((d) => {
+                data = d.filter((n) => { return n.fuelType == "Electricity" && n.make != "BYD" && n.make != "Jaguar"})
+                filteredData = data.filter((n) => { return n.year == "1998"; })
+                console.log(filteredData);
+                updateChart()
+            })
+        })
+    </script>
 </div>

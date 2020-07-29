@@ -1,3 +1,178 @@
 <div>
-    Stage 3
+    <p>How much money can you save on fuel per year? Enter the MPG your vehicle gets and how many miles you drive per month.</p>
+    <p>
+        How many miles per gallon does your current vehicle get?
+        <input id="mpg" class="parameter" type="number" value="32">
+    </p>
+    <p>
+        How many miles per month do you drive?
+        <input id="miles" class="parameter" type="number" value="400"/>
+    </p>
+    <div id="scene3"></div>
+    <script>
+        $(".parameter").change(function(e) {
+            updateChart()
+        })
+
+        var averageElectricityCostPerkWh = 0.12
+        var averageGasolineCost = 2.843
+
+        // initailize screen data
+        var margin = {
+            top: 30,
+            right: 30,
+            bottom: 70,
+            left: 60
+        }
+        var width = 1600 - margin.left - margin.right
+        var height = 900 - margin.top - margin.bottom 
+
+        var data = {
+            series: [
+                {
+                    name: "Gasoline Cost",
+                    values: []
+                },
+                {
+                    name: "Electricity Cost",
+                    values: []
+                }
+            ],
+            dates: [Date.parse("2020-01-01"), Date.parse("2020-02-01"), Date.parse("2020-03-01"), Date.parse("2020-04-01"), Date.parse("2020-05-01"),Date.parse("2020-06-01"),Date.parse("2020-07-01"),Date.parse("2020-08-01"),Date.parse("2020-09-01"),Date.parse("2020-10-01"),Date.parse("2020-11-01"),Date.parse("2020-12-01")]
+        }
+
+        // initialize svg canvas
+        var svg = d3
+            .select("#scene3")
+            .append("svg")
+            .attr("id", "graph")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var updateChart = function() {
+
+            svg.exit().remove()
+            d3.select("g").selectAll("*").remove()
+
+            // grab the values to recalculate the data
+            var old_car_mpg = $("#mpg").val()
+            var old_car_miles = $("#miles").val()
+            var milesPerKwh = 4.0
+
+            var gasolineCostArray = []
+            var electricityCostArray = []
+
+            var gasRunningTotal = 0.0
+            var electricRunningTotal = 0.0
+            
+            for (var m = 0; m < 12; m++) {
+                var gasAdd = (old_car_miles / old_car_mpg) * averageGasolineCost
+                var electricAdd = (old_car_miles / milesPerKwh) * averageElectricityCostPerkWh
+
+                gasRunningTotal += gasAdd
+                electricRunningTotal += electricAdd
+                
+                gasolineCostArray.push(gasRunningTotal)
+                electricityCostArray.push(electricRunningTotal)
+            }
+
+            data.series = [
+                {
+                    name: "Gasoline Cost",
+                    values: gasolineCostArray 
+                },
+                {
+                    name: "Electricity Cost",
+                    values: electricityCostArray
+                }
+            ]
+
+            var color = d3.scaleOrdinal()
+                .domain(["Gasoline Cost", "Electricity Cost"])
+                .range(d3.schemeTableau10)
+
+            x = d3.scaleUtc()
+                .domain(d3.extent(data.dates))
+                .range([margin.left, width - margin.right])
+
+            xAxis = g => g
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
+
+            svg.append("g")
+                .call(xAxis);
+
+            y = d3.scaleLinear()
+                .domain([0, d3.max(data.series, d => d3.max(d.values))]).nice()
+                .range([height - margin.bottom, margin.top])
+
+            yAxis = g => g
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y))
+                .call(g => g.select(".domain").remove())
+                .call(g => g.select(".tick:last-of-type text").clone()
+                    .attr("x", 3)
+                    .attr("text-anchor", "start")
+                    .attr("font-weight", "bold")
+                    .text(data.y))
+
+            svg.append("g")
+                .call(yAxis);
+
+            // draw gas line
+            var gasLine = _.filter(data.series, function(d) { return d.name == "Gasoline Cost" })
+            console.log(`gasLine`, gasLine)
+            line1 = d3.line()
+                .defined(d => !isNaN(d))
+                .x((d, i) => x(data.dates[i]))
+                .y(d => y(d))
+                    const path1 = svg.append("g")
+                        .attr("fill", "none")
+                        .attr("stroke", "lightblue")
+                        .attr("stroke-width", 5)
+                        .attr("stroke-linejoin", "round")
+                        .attr("stroke-linecap", "round")
+                        .selectAll("path")
+                        .data(gasLine)
+                        .join("path")
+                        .style("mix-blend-mode", "multiply")
+                        .attr("d", d => line1(d.values));
+
+            // draw electricity line
+            var electricityLine = _.filter(data.series, function(d) { return d.name == "Electricity Cost" })
+            console.log(`gasLine`, gasLine)
+            line2 = d3.line()
+                .defined(d => !isNaN(d))
+                .x((d, i) => x(data.dates[i]))
+                .y(d => y(d))
+                    const path2 = svg.append("g")
+                        .attr("fill", "none")
+                        .attr("stroke", "lightgreen")
+                        .attr("stroke-width", 5)
+                        .attr("stroke-linejoin", "round")
+                        .attr("stroke-linecap", "round")
+                        .selectAll("path")
+                        .data(electricityLine)
+                        .join("path")
+                        .style("mix-blend-mode", "multiply")
+                        .attr("d", d => line2(d.values));
+
+                svg.call(null, path1);
+                svg.call(null, path2);
+
+            // text label for the y axis
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x",0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Value");  
+        }
+
+        updateChart()
+
+    </script>
 </div>
