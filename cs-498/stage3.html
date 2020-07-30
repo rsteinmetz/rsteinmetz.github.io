@@ -1,21 +1,33 @@
 <div>
-    <p>How much money can you save on fuel per year? Enter the MPG your vehicle gets and how many miles you drive per month.</p>
+    <p>Fill out the options below to see how much money you could save per year on fuel.</p>
+    <p>The default values are the national averages.</p>
     <p>
-        How many miles per gallon does your current vehicle get?
         <input id="mpg" class="parameter" type="number" value="32">
+        Enter how many Miles Per Gallon (MPG) your current vehicle gets.
     </p>
     <p>
-        How many miles per month do you drive?
-        <input id="miles" class="parameter" type="number" value="400"/>
+        <input id="gasCost" class="parameter" type="number" value="2.84">
+        Enter the price of gasoline in your area.
     </p>
+    <p>
+        <input id="miles" class="parameter" type="number" value="400"/>
+        Enter how many miles you drive per month.
+    </p>
+    <p>
+        <input id="kwh" class="parameter" type="number" value="0.12"/>
+        Enter how many cents you pay per kWh of electricity.
+    </p>
+    <p>
+        <input id="mpkwh" class="parameter" type="number" value="4"/>
+        Enter how many miles your electric vehicle gets per kWh.
+    </p>
+    <div id="tooltip"></div>
     <div id="scene3"></div>
     <script>
         $(".parameter").change(function(e) {
             updateChart()
         })
 
-        var averageElectricityCostPerkWh = 0.12
-        var averageGasolineCost = 2.843
 
         // initailize screen data
         var margin = {
@@ -26,6 +38,7 @@
         }
         var width = 1600 - margin.left - margin.right
         var height = 900 - margin.top - margin.bottom 
+        var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
 
         var data = {
             series: [
@@ -59,7 +72,9 @@
             // grab the values to recalculate the data
             var old_car_mpg = $("#mpg").val()
             var old_car_miles = $("#miles").val()
-            var milesPerKwh = 4.0
+            var averageElectricityCostPerkWh = $("#kwh").val()
+            var averageGasolineCost = $("#gasCost").val()
+            var milesPerKwh = $("#mpkwh").val()
 
             var gasolineCostArray = []
             var electricityCostArray = []
@@ -89,8 +104,9 @@
                 }
             ]
 
+            var legendObject = ["Gasoline Cost", "Electricity Cost"]
             var color = d3.scaleOrdinal()
-                .domain(["Gasoline Cost", "Electricity Cost"])
+                .domain(legendObject)
                 .range(d3.schemeTableau10)
 
             x = d3.scaleUtc()
@@ -123,14 +139,13 @@
 
             // draw gas line
             var gasLine = _.filter(data.series, function(d) { return d.name == "Gasoline Cost" })
-            console.log(`gasLine`, gasLine)
             line1 = d3.line()
                 .defined(d => !isNaN(d))
                 .x((d, i) => x(data.dates[i]))
                 .y(d => y(d))
                     const path1 = svg.append("g")
                         .attr("fill", "none")
-                        .attr("stroke", "lightblue")
+                        .attr("stroke", "rgb(78, 121, 167)")
                         .attr("stroke-width", 5)
                         .attr("stroke-linejoin", "round")
                         .attr("stroke-linecap", "round")
@@ -138,18 +153,43 @@
                         .data(gasLine)
                         .join("path")
                         .style("mix-blend-mode", "multiply")
-                        .attr("d", d => line1(d.values));
+                        .attr("d", d => line1(d.values))
+                        .on("mouseout", function(d,i) {
+                            tooltip
+                            .style("opacity", 0)
+                        })
+
+                //add points to the graph...
+                for (var i = 0; i < gasLine.length; i++) {
+                    svg.selectAll("points")
+                        .data(gasLine[i].values)
+                        .enter()
+                        .append("circle")
+                        .on("mouseover", function(d,i) {
+                            console.log(d)
+                            tooltip
+                            .style("opacity", 1)
+                            .style("left", (d3.event.pageX)+"px")
+                            .style("top", (d3.event.pageY)+"px")
+                            .html(`Gas Cost: $${d.toFixed(2)}`)
+                        })
+                        .attr("fill", "rgb(78, 121, 167)")
+                        .attr("stroke", "none")
+                        .attr("cx", function(d,i) { return x(data.dates[i]) })
+                        .attr("cy", function(d) { return y(d) })
+                        .attr("r", 10)
+
+                }
 
             // draw electricity line
             var electricityLine = _.filter(data.series, function(d) { return d.name == "Electricity Cost" })
-            console.log(`gasLine`, gasLine)
             line2 = d3.line()
                 .defined(d => !isNaN(d))
                 .x((d, i) => x(data.dates[i]))
                 .y(d => y(d))
                     const path2 = svg.append("g")
                         .attr("fill", "none")
-                        .attr("stroke", "lightgreen")
+                        .attr("stroke", "rgb(225, 87, 89)")
                         .attr("stroke-width", 5)
                         .attr("stroke-linejoin", "round")
                         .attr("stroke-linecap", "round")
@@ -157,10 +197,35 @@
                         .data(electricityLine)
                         .join("path")
                         .style("mix-blend-mode", "multiply")
-                        .attr("d", d => line2(d.values));
+                        .attr("d", d => line2(d.values))
+                        .on("mouseout", function(d,i) {
+                            tooltip
+                            .style("opacity", 0)
+                        })
 
-                svg.call(null, path1);
-                svg.call(null, path2);
+                //add points to the graph...
+                for (var i = 0; i < electricityLine.length; i++) {
+                    svg.selectAll("points")
+                        .data(electricityLine[i].values)
+                        .enter()
+                        .append("circle")
+                        .on("mouseover", function(d,i) {
+                            console.log(d)
+                            tooltip
+                            .style("opacity", 1)
+                            .style("left", (d3.event.pageX)+"px")
+                            .style("top", (d3.event.pageY)+"px")
+                            .html(`Electricity Cost: $${d.toFixed(2)}`)
+                        })
+                        .attr("fill", "rgb(225, 87, 89)")
+                        .attr("stroke", "none")
+                        .attr("cx", function(d,i) { return x(data.dates[i]) })
+                        .attr("cy", function(d) { return y(d) })
+                        .attr("r", 10)
+
+                }
+
+
 
             // text label for the y axis
             svg.append("text")
@@ -169,7 +234,33 @@
                 .attr("x",0 - (height / 2))
                 .attr("dy", "1em")
                 .style("text-anchor", "middle")
-                .text("Value");  
+                .text("Cost");  
+
+
+                // legend
+                var size = 20
+                svg
+                .selectAll("mydots")
+                .data(legendObject)
+                .enter()
+                .append("rect")
+                .attr("x", 200 + size*1.2)
+                .attr("y", function(d,i){ return 200+(i*(size+5))}) // 100 is where the first dot appears. 25 is the distance between dots
+                .attr("width", size)
+                .attr("height", size)
+                .style("fill", function(d) { return d == "Gasoline Cost" ? "rgb(78, 121, 167)": "rgb(225, 87, 89)" })
+    
+                svg
+                .selectAll("mylabels")
+                .data(legendObject)
+                .enter()
+                .append("text")
+                .attr("x", 225 + size)
+                .attr("y", function(d, i) { return 200+(i*(size+5) + (size/2))})
+                .style("fill", function(d) { return d == "Gasoline Cost" ? "rgb(78, 121, 167)": "rgb(225, 87, 89)" })
+                .text(function(d) { return d})
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
         }
 
         updateChart()

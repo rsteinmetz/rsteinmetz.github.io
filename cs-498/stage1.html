@@ -43,7 +43,7 @@
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
         updateChart = function() {
 
@@ -77,36 +77,51 @@
                 annotation
                     .style("opacity", 1)
                     .html(`In 1984, we can see that Regular Gasoline and Diesel were the only two fuels being used in cars.`)
-
-                    svg.append("svg:defs").append("svg:marker")
-                        .attr("id", "triangle")
-                        .attr("refX", 100)
-                        .attr("refY", 100)
-                        .attr("markerWidth", 300)
-                        .attr("markerHeight", 300)
-                        .attr("orient", "auto")
-                        .append("path")
-                        .attr("d", "M 0 0 12 6 0 12 3 6")
-                        .style("fill", "black");
-
-
             } else if (dateRangeText.innerHTML == 1985) {
                 annotation
                     .style("opacity", 1)
                     .html(`In 1985, we see vehicles with premium gasoline being made.`)
+
+                    svg.append("path")
+                        .attr("d", "M 900 550 L 900 800")
+                        .attr("stroke", "black")
+                        .attr("stroke-width", 2)
+                        .attr("fill", "none")
+
             } else if (dateRangeText.innerHTML == 1986) {
                 annotation
                     .style("opacity", 1)
                     .html(`In 1986, we see that premium gasoline cars start being produced more than diesel.`)
+
+                    svg.append("path")
+                        .attr("d", "M 900 550 L 900 800")
+                        .attr("stroke", "black")
+                        .attr("stroke-width", 2)
+                        .attr("fill", "none")
+
             } else if (dateRangeText.innerHTML == 1998) {
                 annotation
                     .style("opacity", 1)
                     .html(`In 1998, we see the first electric vehicle hit the market.`)
+
+                    svg.append("path")
+                        .attr("d", "M 900 550 L 1250 -1000")
+                        .attr("stroke", "black")
+                        .attr("stroke-width", 2)
+                        .attr("fill", "none")
+
             } else if (dateRangeText.innerHTML == 2013) {
                 annotation
                     .style("opacity", 1)
                     .html(`In 2013, there were more electric vehicles hitting the market than diesel vehicles. We can also see that Premium Gasoline cars are being produced more than Regular. This indicates that there is some desire in the marketplace for fuel efficency.`)
-            } else if (dateRangeText.innerHTML == 2020) {
+            
+                    svg.append("path")
+                        .attr("d", "M 900 550 L 800 800")
+                        .attr("stroke", "black")
+                        .attr("stroke-width", 2)
+                        .attr("fill", "none")
+            
+                } else if (dateRangeText.innerHTML == 2020) {
                 annotation
                     .style("opacity", 1)
                     .html(`Today we can see that electric cars are becoming more and more popular. Let's investigate why in the next slide.`)
@@ -164,17 +179,17 @@
                 .attr("width", x.bandwidth())
                 .attr("height", function(d) { return height - y(d.count)})
                 .attr("fill", function(d) { return color(d.type) })
-                .on("mouseover", function(d,i) {
-                    console.log("mouseover")
-                    tooltip
-                    .style("opacity", 1)
-                    .style("left", (d3.event.pageX)+"px")
-                    .style("top", (d3.event.pageY)+"px")
-                    .html(`Type: ${d.type}<br/>Count: ${d.count}`)
-                })
                 .on("mouseout", function(d,i) {
+                    console.log("mouseout")
                     tooltip
                     .style("opacity", 0)
+                })
+                .on("mouseover", function(d,i) {
+                    tooltip
+                    .style("opacity", 1)
+                    .style("left", (d3.event.pageX+50)+"px")
+                    .style("top", (d3.event.pageY-50)+"px")
+                    .html(`Type: ${d.type}<br/>Count: ${d.count}`)
                 })
 
             var size = 20
