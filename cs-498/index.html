@@ -9,40 +9,82 @@
                 $("#scene").load("stage1.html")
 
                 $(".sceneSelectorButton").click(function(e) {
+                    const sceneNum = $(this).data("scene");
                     if (e.target.innerHTML == "Next") {
-                        var sceneNumber = parseInt($(".sceneSelectorButtonSelected").attr("scene"))
+                        var sceneNumber = parseInt(sceneNum)
                         $(`#sceneButton${sceneNumber + 1}`).click()
                     } else {
-                        $("#scene").load(`stage${e.target.innerHTML}.html`)
+                        $("#scene").load(`stage${sceneNum}.html`)
                         $(".sceneSelectorButton").removeClass("sceneSelectorButtonSelected")
-                        $(`#sceneButton${e.target.innerHTML}`).addClass("sceneSelectorButtonSelected")
+                        $(`#sceneButton${sceneNum}`).addClass("sceneSelectorButtonSelected")
                     }
                 })
             })
-
         </script>
     </head>
     <body>
-        <div class="title-bar">
-            Electric Vehicle Popularity and Benefits
-        </div>
-        <div id="sceneSelector">
-            <button id="sceneButton1" scene="1" class="sceneSelectorButton sceneSelectorButtonSelected">1</button>
-            <button id="sceneButton2" scene="2" class="sceneSelectorButton">2</button>
-            <button id="sceneButton3" scene="3" class="sceneSelectorButton">3</button>
-            <button id="nextButton" class="sceneSelectorButton">Next</button>
-        </div>
-        <div id="scene">
+        <div id="outer">
+            <div id="inner">
+                <div class="title-bar">
+                    Electric Vehicles
+                </div>
+            </div>
+            <div id="inner">
+                There have been many improvements to the car since it's invention in <b>1885</b>. The Benz Patent Motor car started the innovation that we see today. One of the newest innovations has been the Electric Car. Given the news popularity recently, is it a good time to invest in Electric Cars?
+            </div>
+            <div id="inner">
 
+                <div id="sceneSelector">
+                    <div class="textcenter">
+                        <button id="sceneButton1" data-scene="1" class="sceneSelectorButton sceneSelectorButtonSelected">Title 1</button>
+                        <button id="sceneButton2" data-scene="2" class="sceneSelectorButton">Efficency</button>
+                        <button id="sceneButton3" data-scene="3" class="sceneSelectorButton">Cost of Fuel</button>
+                        <button id="sceneButton4" data-scene="4" class="sceneSelectorButton">Valuation</button>
+                        <button id="nextButton" data-scene="Next" class="sceneSelectorButton">Next</button>
+                    </div>
+                </div>
+            </div>
+            <div id="scene"></div>
         </div>
+    
         <style>
 
+            html {
+                background-color: darkgray;
+            }
+
+            #outer {
+                width: 100%;
+                background-color: darkgray;
+            }
+
+            #inner {
+                display: table;
+                margin: 0 auto;
+                border: 1px solid black;
+                width: 1600px;
+                z-index: 999;
+                background-color: white;
+                margin-top: 10px;
+                padding: 25px;
+                font-size: 25px;
+            }
+
+            .textcenter {
+                text-align: center;
+            }
+
             .sceneSelector {
-                padding-bottom: 50px;
+                text-align: center;
+                margin: 0 auto;
+                padding-top: 10px;
             }
 
             .sceneSelectorButton {
-                width: 100px
+                width: 150px;
+                height: 25px;
+                margin: 0 auto;
+                display: inline;
             }
 
             .sceneSelectorButtonSelected {
@@ -54,7 +96,6 @@
                 position: absolute;
                 background-color: lightgray;
                 border: 1px solid black;
-                min-width: 200px;
                 padding: 10px;
             }
 
@@ -71,7 +112,7 @@
 
             .title-bar {
                 text-align: center;
-                font-size: xx-large;
+                font-size: xxx-large;
                 width: 100%;
             }
 
@@ -83,7 +124,13 @@
             }
 
             #dateRange {
-                width: 500px;
+                width: 100%;
+            }
+
+            #dateRangeText {
+                text-align: center;
+                width: 100%;
+                font-size: 24px;
             }
 
             .slideIntroText {

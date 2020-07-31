@@ -1,33 +1,225 @@
-<div>
+<div id="inner">
     <p>Fill out the options below to see how much money you could save per year on fuel.</p>
     <p>The default values are the national averages.</p>
     <p>
-        <input id="mpg" class="parameter" type="number" value="32">
-        Enter how many Miles Per Gallon (MPG) your current vehicle gets.
+        <input id="mpg" class="parameter" type="number" value="32" min="0" step="1">
+        How many Miles Per Gallon (MPG) does your current car get?
     </p>
     <p>
-        <input id="gasCost" class="parameter" type="number" value="2.84">
-        Enter the price of gasoline in your area.
+        <input id="gasCost" class="parameter" type="number" value="2.84" min="0" step="0.01">
+        What is the current price per gallon of gasoline in your area?
     </p>
     <p>
-        <input id="miles" class="parameter" type="number" value="400"/>
-        Enter how many miles you drive per month.
+        <input id="miles" class="parameter" type="number" value="400" min="0" step="1"/>
+        On average, how many miles do you drive per month?
     </p>
     <p>
-        <input id="kwh" class="parameter" type="number" value="0.12"/>
-        Enter how many cents you pay per kWh of electricity.
+        <input id="kwh" class="parameter" type="number" value="0.12" min="0" step="0.01"/>
+        What is the cost of electricity per kWh that you pay at home?
     </p>
     <p>
-        <input id="mpkwh" class="parameter" type="number" value="4"/>
-        Enter how many miles your electric vehicle gets per kWh.
+        <input id="fast" class="parameter" type="number" value="0.24" min="0" step="0.01"/>
+        If you were to use a fast charging network, how much does the network charge per kWh of charge?
     </p>
+    <p>
+        <input id="mpkwh" class="parameter" type="number" value="4" min="0"/>
+        Enter how many miles per kWh the electric vehicle you are intersted in gets. 
+    </p>
+</div>
+
+<div id="inner">
     <div id="tooltip"></div>
     <div id="scene3"></div>
     <script>
-        $(".parameter").change(function(e) {
-            updateChart()
+        $(".parameter").change(function() {
+            updateChart();
         })
 
+        // global parameters
+        var monthArray = [1,2,3,4,5,6,7,8,9,10,11,12]
+
+        function populateData() {
+
+            // grab the parameters from the HTML 
+            var old_car_mpg = parseFloat($("#mpg").val())
+            var old_car_miles = parseFloat($("#miles").val())
+            var averageElectricityCostPerkWh = parseFloat($("#kwh").val())
+            var averageFastCostPerkWh = parseFloat($("#fast").val())
+            var averageGasolineCost = parseFloat($("#gasCost").val())
+            var milesPerKwh = parseFloat($("#mpkwh").val())
+
+            // set up the return structure 
+            var data = []
+
+            var gasData = [];
+            var homeData = [];
+            var fastData = [];
+            
+            var gasTotal = 0.0
+            var fastTotal = 0.0
+            var homeTotal = 0.0
+
+            for (var m = 1; m <= monthArray.length; m++) {
+                gasTotal += (old_car_miles / old_car_mpg) * averageGasolineCost
+                homeTotal += (old_car_miles / milesPerKwh) * averageElectricityCostPerkWh
+                fastTotal += (old_car_miles / milesPerKwh) * averageFastCostPerkWh
+                
+                data.push({ name: "Gasoline Cost", month: m, value: gasTotal})
+                data.push({ name: "Home Charging Cost", month: m, value: homeTotal})
+                data.push({ name: "Fast Charging Cost", month: m, value: fastTotal})
+            }
+            
+            return data
+        }
+
+        function drawLinePoints(svg, data) { 
+
+            // from data we need the legend array or the name
+            var legendArray = _.uniq(_.map(data, 'name'));
+
+            // also we need the max value so we can set the y axis correctly
+            var maxY = 0.0;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].value > maxY) {
+                    maxY = data[i].value
+                }
+            }
+            var t = d3.transition().duration(500)
+
+            var color = d3.scaleOrdinal()
+                .domain(legendArray)
+                .range(d3.schemeTableau10)
+
+            x = d3.scaleLinear()
+                .domain(d3.extent(monthArray))
+                .range([margin.left, width - margin.right])
+
+            xAxis = g => g
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x).ticks(12).tickSizeOuter(0))
+
+            svg.append("g")
+                .call(xAxis);
+
+            y = d3.scaleLinear()
+                .domain([0, maxY]).nice()
+                .range([height - margin.bottom, margin.top])
+
+            yAxis = g => g
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y).tickFormat(function(d) { return `$${d.toFixed(2)}`}))
+                .call(g => g.select(".domain").remove())
+                .call(g => g.select(".tick:last-of-type text").clone()
+                    .attr("x", 3)
+                    .attr("text-anchor", "start")
+                    .attr("font-weight", "bold"))
+
+                svg.append("g")
+                    .call(yAxis);
+
+                // join new data with old data
+                var oldCircles = svg
+                .selectAll("circle")
+                .data(data, function(d) { return d; });
+
+                // exit the old elemeents
+                oldCircles
+                .exit()
+                .transition(t)
+                .attr("y", 0)
+                .remove();
+
+                //add points to the graph...
+                oldCircles
+                    .enter()
+                    .append("circle")
+                    .on("mouseover", function(d,i) {
+                        tooltip
+                        .style("opacity", 1)
+                        .style("left", (d3.event.pageX+50)+"px")
+                        .style("top", (d3.event.pageY)+"px")
+                        .html(`$${d.value.toFixed(2)}`)
+                    })
+                    .on("mouseout", function(d,i) {
+                        tooltip
+                        .style("opacity", 0)
+                    })
+                    .attr("fill", function(d) { return color(d.name);  })
+                    .attr("stroke", "none")
+                    .attr("cx", function(d) { return x(d.month) })
+                    .attr("cy", function(d) { return y(d.value) })
+                    .attr("r", 1)
+                    .transition(t)
+                    .attr("cx", function(d) { return x(d.month) })
+                    .attr("cy", function(d) { return y(d.value) })
+                    .attr("r", 10)
+
+                    for (var i = 0; i < legendArray.length; i++) {
+                        // only pull the data  points for this line
+
+                        var fuelType = _.filter(data, function(d) { return d.name == legendArray[i] })
+
+                        line = d3.line()
+                        .defined(d => !isNaN(d.value))
+                        .x(d => x(d.month))
+                        .y(d => y(d.value))
+
+                        svg
+                        .append("path")
+                        .datum(fuelType)
+                        .attr("fill", "none")
+                        .attr("stroke", function(d) { console.log("d", d[i]); return color(d[i].name)})
+                        .attr("stroke-width", 5)
+                        .attr("stroke-linejoin", "round")
+                        .attr("storke-linecap", "round")
+                        .attr("d", line)
+                        .on("mouseout", function(d,i) {
+                            tooltip
+                            .style("opacity", 0)
+                        })
+                    }
+
+
+            // legend
+            var size = 20
+            svg
+            .selectAll("mydots")
+            .data(legendArray)
+            .enter()
+            .append("rect")
+            .attr("x", 200 + size*1.2)
+            .attr("y", function(d,i){ return 200+(i*(size+5))}) 
+            .attr("width", size)
+            .attr("height", size)
+            .style("fill", function(d) { return color(d)})
+
+            svg
+            .selectAll("mylabels")
+            .data(legendArray)
+            .enter()
+            .append("text")
+            .attr("x", 225 + size)
+            .attr("y", function(d, i) { return 200+(i*(size+5) + (size/2))})
+            .style("fill", function(d) { return color(d) })
+            .text(function(d) { return d})
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle")
+
+            // text label for the axis
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Fuel Cost");  
+
+            svg.append("text")      // text label for the x axis
+                .attr("x", 700 )
+                .attr("y", 775 )
+                .style("text-anchor", "middle")
+                .text("Number of Months");
+        }
 
         // initailize screen data
         var margin = {
@@ -40,227 +232,222 @@
         var height = 900 - margin.top - margin.bottom 
         var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
 
-        var data = {
-            series: [
-                {
-                    name: "Gasoline Cost",
-                    values: []
-                },
-                {
-                    name: "Electricity Cost",
-                    values: []
-                }
-            ],
-            dates: [Date.parse("2020-01-01"), Date.parse("2020-02-01"), Date.parse("2020-03-01"), Date.parse("2020-04-01"), Date.parse("2020-05-01"),Date.parse("2020-06-01"),Date.parse("2020-07-01"),Date.parse("2020-08-01"),Date.parse("2020-09-01"),Date.parse("2020-10-01"),Date.parse("2020-11-01"),Date.parse("2020-12-01")]
-        }
-
         // initialize svg canvas
         var svg = d3
             .select("#scene3")
             .append("svg")
             .attr("id", "graph")
-            .attr("width", width + margin.left + margin.right)
+            .attr("width", "100%")
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         var updateChart = function() {
 
-            svg.exit().remove()
-            d3.select("g").selectAll("*").remove()
+            var data = populateData();
 
-            // grab the values to recalculate the data
-            var old_car_mpg = $("#mpg").val()
-            var old_car_miles = $("#miles").val()
-            var averageElectricityCostPerkWh = $("#kwh").val()
-            var averageGasolineCost = $("#gasCost").val()
-            var milesPerKwh = $("#mpkwh").val()
+            d3.selectAll("g > *").remove()
 
-            var gasolineCostArray = []
-            var electricityCostArray = []
+            drawLinePoints(svg, data)
 
-            var gasRunningTotal = 0.0
-            var electricRunningTotal = 0.0
-            
-            for (var m = 0; m < 12; m++) {
-                var gasAdd = (old_car_miles / old_car_mpg) * averageGasolineCost
-                var electricAdd = (old_car_miles / milesPerKwh) * averageElectricityCostPerkWh
-
-                gasRunningTotal += gasAdd
-                electricRunningTotal += electricAdd
-                
-                gasolineCostArray.push(gasRunningTotal)
-                electricityCostArray.push(electricRunningTotal)
-            }
-
-            data.series = [
-                {
-                    name: "Gasoline Cost",
-                    values: gasolineCostArray 
-                },
-                {
-                    name: "Electricity Cost",
-                    values: electricityCostArray
-                }
-            ]
-
-            var legendObject = ["Gasoline Cost", "Electricity Cost"]
-            var color = d3.scaleOrdinal()
-                .domain(legendObject)
-                .range(d3.schemeTableau10)
-
-            x = d3.scaleUtc()
-                .domain(d3.extent(data.dates))
-                .range([margin.left, width - margin.right])
-
-            xAxis = g => g
-                .attr("transform", `translate(0,${height - margin.bottom})`)
-                .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
-
-            svg.append("g")
-                .call(xAxis);
-
-            y = d3.scaleLinear()
-                .domain([0, d3.max(data.series, d => d3.max(d.values))]).nice()
-                .range([height - margin.bottom, margin.top])
-
-            yAxis = g => g
-                .attr("transform", `translate(${margin.left},0)`)
-                .call(d3.axisLeft(y))
-                .call(g => g.select(".domain").remove())
-                .call(g => g.select(".tick:last-of-type text").clone()
-                    .attr("x", 3)
-                    .attr("text-anchor", "start")
-                    .attr("font-weight", "bold")
-                    .text(`$${data.y}`))
-
-            svg.append("g")
-                .call(yAxis);
 
             // draw gas line
-            var gasLine = _.filter(data.series, function(d) { return d.name == "Gasoline Cost" })
-            line1 = d3.line()
-                .defined(d => !isNaN(d))
-                .x((d, i) => x(data.dates[i]))
-                .y(d => y(d))
-                    const path1 = svg.append("g")
-                        .attr("fill", "none")
-                        .attr("stroke", "rgb(78, 121, 167)")
-                        .attr("stroke-width", 5)
-                        .attr("stroke-linejoin", "round")
-                        .attr("stroke-linecap", "round")
-                        .selectAll("path")
-                        .data(gasLine)
-                        .join("path")
-                        .style("mix-blend-mode", "multiply")
-                        .attr("d", d => line1(d.values))
-                        .on("mouseout", function(d,i) {
-                            tooltip
-                            .style("opacity", 0)
-                        })
+            // var gasLine = _.first(_.filter(data.series, function(d) { return d.name == "Gasoline Cost" }))
+            // console.log(gasLine);
+            // line1 = d3.line()
+            //     .defined(d => function(d,i) { return !isNaN(d) })
+            //     .x((d, i) => function(d,i) { return x(data.dates[i]); })
+            //     .y(d => y(d))
+            //         const path1 = svg.append("g")
+            //             .attr("fill", "none")
+            //             .attr("stroke", "rgb(225, 87, 89)")
+            //             .attr("stroke-width", 5)
+            //             .attr("stroke-linejoin", "round")
+            //             .attr("stroke-linecap", "round")
+            //             .selectAll("path")
+            //             .data(gasLine)
+            //             .join("path") 
+            //             .style("mix-blend-mode", "multiply")
+            //             .attr("d", d => line1(d.values))
+            //             .on("mouseout", function(d,i) {
+            //                 tooltip
+            //                 .style("opacity", 0)
+            //             })
+            // svg
+            // .append("path")
+            // .data(gasLine)
+            // .attr("fill", "none")
+            // .attr("stroke", "steelblue")
+            // .attr("stroke-width", 1.5)
+            // .attr("d", d3.line()
+            //     .x(function(d, i) { console.log(data.months[i]); return x(data.months[i]) })
+            //     .y(function(d, i) { console.log(d.values[i]); return y(d.values[i]) })
+            //     )
 
-                //add points to the graph...
-                for (var i = 0; i < gasLine.length; i++) {
-                    svg.selectAll("points")
-                        .data(gasLine[i].values)
-                        .enter()
-                        .append("circle")
-                        .on("mouseover", function(d,i) {
-                            console.log(d)
-                            tooltip
-                            .style("opacity", 1)
-                            .style("left", (d3.event.pageX)+"px")
-                            .style("top", (d3.event.pageY)+"px")
-                            .html(`Gas Cost: $${d.toFixed(2)}`)
-                        })
-                        .attr("fill", "rgb(78, 121, 167)")
-                        .attr("stroke", "none")
-                        .attr("cx", function(d,i) { return x(data.dates[i]) })
-                        .attr("cy", function(d) { return y(d) })
-                        .attr("r", 10)
+            // line = d3.line()
+            // .defined(d => !isNaN(d.value))
+            // .x(d => x(d.month))
+            // .y(d => y(d.value))
 
-                }
+            // svg
+            // .append("path")
+            // .datum(gasData)
+            // .attr("fill", "none")
+            // .attr("stroke", function(d) { return color("Gasoline Cost")})
+            // .attr("stroke-width", 5)
+            // .attr("stroke-linejoin", "round")
+            // .attr("storke-linecap", "round")
+            // .attr("d", line)
+            // .on("mouseout", function(d,i) {
+            //     tooltip
+            //     .style("opacity", 0)
+            // })
 
-            // draw electricity line
-            var electricityLine = _.filter(data.series, function(d) { return d.name == "Electricity Cost" })
-            line2 = d3.line()
-                .defined(d => !isNaN(d))
-                .x((d, i) => x(data.dates[i]))
-                .y(d => y(d))
-                    const path2 = svg.append("g")
-                        .attr("fill", "none")
-                        .attr("stroke", "rgb(225, 87, 89)")
-                        .attr("stroke-width", 5)
-                        .attr("stroke-linejoin", "round")
-                        .attr("stroke-linecap", "round")
-                        .selectAll("path")
-                        .data(electricityLine)
-                        .join("path")
-                        .style("mix-blend-mode", "multiply")
-                        .attr("d", d => line2(d.values))
-                        .on("mouseout", function(d,i) {
-                            tooltip
-                            .style("opacity", 0)
-                        })
+            // //add points to the graph...
+            // svg.selectAll("points")
+            //     .data(gasData)
+            //     .enter()
+            //     .append("circle")
+            //     .on("mouseover", function(d,i) {
+            //         tooltip
+            //         .style("opacity", 1)
+            //         .style("left", (d3.event.pageX)+"px")
+            //         .style("top", (d3.event.pageY)+"px")
+            //         .html(`Gas Cost: $${d.value.toFixed(2)}`)
+            //     })
+            //     .attr("fill", function(d) { return color("Gasoline Cost");  })
+            //     .attr("stroke", "none")
+            //     .attr("cx", function(d) { return x(d.month) })
+            //     .attr("cy", function(d) { return y(d.value) })
+            //     .attr("r", 10)
 
-                //add points to the graph...
-                for (var i = 0; i < electricityLine.length; i++) {
-                    svg.selectAll("points")
-                        .data(electricityLine[i].values)
-                        .enter()
-                        .append("circle")
-                        .on("mouseover", function(d,i) {
-                            console.log(d)
-                            tooltip
-                            .style("opacity", 1)
-                            .style("left", (d3.event.pageX)+"px")
-                            .style("top", (d3.event.pageY)+"px")
-                            .html(`Electricity Cost: $${d.toFixed(2)}`)
-                        })
-                        .attr("fill", "rgb(225, 87, 89)")
-                        .attr("stroke", "none")
-                        .attr("cx", function(d,i) { return x(data.dates[i]) })
-                        .attr("cy", function(d) { return y(d) })
-                        .attr("r", 10)
+            // // draw electricity line
+            // var electricityLine = _.filter(data.series, function(d) { return d.name == "Electricity Cost" })
+            // line2 = d3.line()
+            //     .defined(d => !isNaN(d))
+            //     .x((d, i) => x(data.dates[i]))
+            //     .y(d => y(d))
+            //         const path2 = svg.append("g")
+            //             .attr("fill", "none")
+            //             .attr("stroke", "rgb(225, 87, 89)")
+            //             .attr("stroke-width", 5)
+            //             .attr("stroke-linejoin", "round")
+            //             .attr("stroke-linecap", "round")
+            //             .selectAll("path")
+            //             .data(electricityLine)
+            //             .join("path")
+            //             .style("mix-blend-mode", "multiply")
+            //             .attr("d", d => line2(d.values))
+            //             .on("mouseout", function(d,i) {
+            //                 tooltip
+            //                 .style("opacity", 0)
+            //             })
 
-                }
+            //     //add points to the graph...
+            //     for (var i = 0; i < electricityLine.length; i++) {
+            //         svg.selectAll("points")
+            //             .data(electricityLine[i].values)
+            //             .enter()
+            //             .append("circle")
+            //             .on("mouseover", function(d,i) {
+            //                 console.log(d)
+            //                 tooltip
+            //                 .style("opacity", 1)
+            //                 .style("left", (d3.event.pageX)+"px")
+            //                 .style("top", (d3.event.pageY)+"px")
+            //                 .html(`Electricity Cost: $${d.toFixed(2)}`)
+            //             })
+            //             .attr("fill", "rgb(225, 87, 89)")
+            //             .attr("stroke", "none")
+            //             .attr("cx", function(d,i) { return x(data.dates[i]) })
+            //             .attr("cy", function(d) { return y(d) })
+            //             .attr("r", 10)
 
+            // // draw fast line
+            // var fastLine = _.filter(data.series, function(d) { return d.name == "Fast Charging Cost" })
+            // line3 = d3.line()
+            //     .defined(d => !isNaN(d))
+            //     .x((d, i) => x(data.dates[i]))
+            //     .y(d => y(d))
+            //         const path2 = svg.append("g")
+            //             .attr("fill", "none")
+            //             .attr("stroke", "rgb(225, 87, 89)")
+            //             .attr("stroke-width", 5)
+            //             .attr("stroke-linejoin", "round")
+            //             .attr("stroke-linecap", "round")
+            //             .selectAll("path")
+            //             .data(fastLine)
+            //             .join("path")
+            //             .style("mix-blend-mode", "multiply")
+            //             .attr("d", d => line3(d.values))
+            //             .on("mouseout", function(d,i) {
+            //                 tooltip
+            //                 .style("opacity", 0)
+            //             })
 
+            //     //add points to the graph...
+            //     for (var i = 0; i < fastLine.length; i++) {
+            //         svg.selectAll("points")
+            //             .data(fastLine)
+            //             .enter()
+            //             .append("circle")
+            //             .on("mouseover", function(d,i) {
+            //                 console.log(d);
+            //                 console.log(i);
+            //                 tooltip
+            //                 .style("opacity", 1)
+            //                 .style("left", (d3.event.pageX)+"px")
+            //                 .style("top", (d3.event.pageY)+"px")
+            //                 .html(`Fast Electricity Cost: $${d.toFixed(2)}`)
+            //             })
+            //             .attr("fill", function(d) { return color(d.name); })
+            //             .attr("stroke", "none")
+            //             .attr("cx", function(d,i) { return x(data.dates[i]) })
+            //             .attr("cy", function(d) { return y(d) })
+            //             .attr("r", 10)
 
-            // text label for the y axis
-            svg.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 0 - margin.left)
-                .attr("x",0 - (height / 2))
-                .attr("dy", "1em")
-                .style("text-anchor", "middle")
-                .text("Cost");  
+                // }
+            // }
 
+            // text label for the axis
+            // svg.append("text")
+            //     .attr("transform", "rotate(-90)")
+            //     .attr("y", 0 - margin.left)
+            //     .attr("x", 0 - (height / 2))
+            //     .attr("dy", "1em")
+            //     .style("text-anchor", "middle")
+            //     .text("Cost");  
 
-                // legend
-                var size = 20
-                svg
-                .selectAll("mydots")
-                .data(legendObject)
-                .enter()
-                .append("rect")
-                .attr("x", 200 + size*1.2)
-                .attr("y", function(d,i){ return 200+(i*(size+5))}) // 100 is where the first dot appears. 25 is the distance between dots
-                .attr("width", size)
-                .attr("height", size)
-                .style("fill", function(d) { return d == "Gasoline Cost" ? "rgb(78, 121, 167)": "rgb(225, 87, 89)" })
+            // svg.append("text")      // text label for the x axis
+            //     .attr("x", 700 )
+            //     .attr("y", 775 )
+            //     .style("text-anchor", "middle")
+            //     .text("Months");
+
+            //     // legend
+            //     var size = 20
+            //     svg
+            //     .selectAll("mydots")
+            //     .data(legendArray)
+            //     .enter()
+            //     .append("rect")
+            //     .attr("x", 200 + size*1.2)
+            //     .attr("y", function(d,i){ return 200+(i*(size+5))}) 
+            //     .attr("width", size)
+            //     .attr("height", size)
+            //     .style("fill", function(d) { return color(d)})
     
-                svg
-                .selectAll("mylabels")
-                .data(legendObject)
-                .enter()
-                .append("text")
-                .attr("x", 225 + size)
-                .attr("y", function(d, i) { return 200+(i*(size+5) + (size/2))})
-                .style("fill", function(d) { return d == "Gasoline Cost" ? "rgb(78, 121, 167)": "rgb(225, 87, 89)" })
-                .text(function(d) { return d})
-                .attr("text-anchor", "left")
-                .style("alignment-baseline", "middle")
+            //     svg
+            //     .selectAll("mylabels")
+            //     .data(legendArray)
+            //     .enter()
+            //     .append("text")
+            //     .attr("x", 225 + size)
+            //     .attr("y", function(d, i) { return 200+(i*(size+5) + (size/2))})
+            //     .style("fill", function(d) { return color(d) })
+            //     .text(function(d) { return d})
+            //     .attr("text-anchor", "left")
+            //     .style("alignment-baseline", "middle")
         }
 
         updateChart()

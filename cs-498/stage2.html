@@ -1,4 +1,4 @@
-<div>
+<div id="inner">
     <div class="slideIntroText">
         How many different vehicle manufactueers created Electric Vehicles?
     </div>
@@ -37,7 +37,7 @@
             .select("#scene2")
             .append("svg")
             .attr("id", "graph")
-            .attr("width", width + margin.left + margin.right)
+            .attr("width", "100%")
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -130,7 +130,7 @@
 
                     // create y axis
                     var y = d3.scaleLinear()
-                        .domain([0,190])
+                        .domain([0,220])
                         .range([height, 0]);
 
                     // add y axis
@@ -161,8 +161,8 @@
                         tooltip
                         .style("opacity", 0)
                     })
-                    .attr("cx", function(d) { return x(d.UCity)})
-                    .attr("cy", function(d) { return y(d.UHighway)})
+                    .attr("cx", function(d) { return x(d.VClass)})
+                    .attr("cy", function(d) { return y(d.UCity)})
                     .attr("r", 10)
                     .style("fill", function(d) { return color(d.make) })
 

@@ -1,9 +1,9 @@
-<div>
-    <div class="slideIntroText">
+<div id="inner">
+    <!-- <div class="slideIntroText">
         Using the slider below, we can adjust the year and see the number of vehicles produced each year along with the fuel types they consume.
-    </div>
-    <span id="dateRangeText">1984</span>
-    <input type="range" min="1984" max="2020" value="1984" class="slider" id="dateRange"/>
+    </div> -->
+    <div id="dateRangeText">1984</div>
+    <input class="yearSlider" type="range" min="1984" max="2020" value="1984" class="slider" id="dateRange"/>
     <div id="annotation"></div>
     <div id="legend"></div>
     <div id="tooltip"></div>
@@ -40,10 +40,11 @@
             .select("#scene1")
             .append("svg")
             .attr("id", "graph")
-            .attr("width", width + margin.left + margin.right)
+            .attr("width", "100%")           
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .attr("width", "100%")     
+            // .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
         updateChart = function() {
 
@@ -144,6 +145,7 @@
                     .selectAll("text")
                     .attr("transform", "translate(-10,0)rotate(-45)")
                     .style("text-anchor", "end")
+                    .style("font-size", "14px")
 
                 svg.append("text")
                     .attr("transform", "rotate(-90)")
@@ -192,29 +194,29 @@
                     .html(`Type: ${d.type}<br/>Count: ${d.count}`)
                 })
 
-            var size = 20
-            svg
-            .selectAll("mydots")
-            .data(legendObject)
-            .enter()
-            .append("rect")
-            .attr("x", 1200 + size*1.2)
-            .attr("y", function(d,i){ return 400+(i*(size+5))}) // 100 is where the first dot appears. 25 is the distance between dots
-            .attr("width", size)
-            .attr("height", size)
-            .style("fill", function(d) { return color(d.type) })
+            // var size = 20
+            // svg
+            // .selectAll("mydots")
+            // .data(legendObject)
+            // .enter()
+            // .append("rect")
+            // .attr("x", 1200 + size*1.2)
+            // .attr("y", function(d,i){ return 400+(i*(size+5))}) // 100 is where the first dot appears. 25 is the distance between dots
+            // .attr("width", size)
+            // .attr("height", size)
+            // .style("fill", function(d) { return color(d.type) })
  
-            svg
-            .selectAll("mylabels")
-            .data(legendObject)
-            .enter()
-            .append("text")
-            .attr("x", 1225 + size)
-            .attr("y", function(d, i) { return 400+(i*(size+5) + (size/2))})
-            .style("fill", function(d) { return color(d.type) })
-            .text(function(d) { return d.type})
-            .attr("text-anchor", "left")
-            .style("alignment-baseline", "middle")
+            // svg
+            // .selectAll("mylabels")
+            // .data(legendObject)
+            // .enter()
+            // .append("text")
+            // .attr("x", 1225 + size)
+            // .attr("y", function(d, i) { return 400+(i*(size+5) + (size/2))})
+            // .style("fill", function(d) { return color(d.type) })
+            // .text(function(d) { return d.type})
+            // .attr("text-anchor", "left")
+            // .style("alignment-baseline", "middle")
         }
 
         // grab dataset
