@@ -39,7 +39,7 @@
 
             x = d3.scaleBand()
                 .domain(d3.utcDay
-                    .range(data[0].date, +data[data.length - 1].date + 1)
+                    .range(data[0].Date, +data[data.length - 1].Date + 1)
                     .filter(d => d.getUTCDay() !== 0 && d.getUTCDay() !== 6))
                 .range([margin.left, width - margin.right])
                 .padding(0.2)
@@ -75,31 +75,31 @@
             .call(yAxis)
 
             const g = svg.append("g")
-            .attr("stroke-linecap", "round")
-            .attr("stroke", "black")
-            .selectAll("g")
-            .data(data)
-            .join("g")
-            .attr("transform", d => `translate(${x(d.Date)},0)`)
+                .attr("stroke-linecap", "round")
+                .attr("stroke", "black")
+                .selectAll("g")
+                .data(data)
+                .join("g")
+                .attr("transform", d => `translate(${x(d.Date)},0)`);
 
-            g.append("line")
-            .attr("y1", d => y(d.low))
-            .attr("y2", d => y(d.high))
+            // g.append("line")
+            // .attr("y1", d => y(d.low))
+            // .attr("y2", d => y(d.high))
 
-            g.append("line")
-            .attr("y1", d => y(d.Open))
-            .attr("y2", d => y(d.Close))
-            .attr("stroke-width", x.bandwidth)
-            .attr("stroke", d => d.Open > d.Close ? d3.schemeSet1[0]
-            : d.close > d.open ? d3.schemeSet1[2]
-            : d3.schemeSet1[8])
+            // g.append("line")
+            // .attr("y1", d => y(d.Open))
+            // .attr("y2", d => y(d.Close))
+            // .attr("stroke-width", x.bandwidth)
+            // .attr("stroke", d => d.Open > d.Close ? d3.schemeSet1[0]
+            // : d.close > d.open ? d3.schemeSet1[2]
+            // : d3.schemeSet1[8])
 
-            g.append("title")
-                .text(d => `${formatDate(d.Date)}
-            Open: ${formatValue(d.Open)}
-            Close: ${formatValue(d.Close)} (${formatChange(d.Open, d.Close)})
-            Low: ${formatValue(d.Low)}
-            High: ${formatValue(d.High)}`);
+            // g.append("title")
+            //     .text(d => `${formatDate(d.Date)}
+            // Open: ${formatValue(d.Open)}
+            // Close: ${formatValue(d.Close)} (${formatChange(d.Open, d.Close)})
+            // Low: ${formatValue(d.Low)}
+            // High: ${formatValue(d.High)}`);
         }
 
         // grab dataset
