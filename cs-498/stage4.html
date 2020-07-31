@@ -1,6 +1,5 @@
 <div id="inner">
     <div class="slideIntroText">
-        How many different vehicle manufactueers created Electric Vehicles?
     </div>
     <div id="tooltip"></div>
     <div id="scene4"></div>
@@ -15,9 +14,9 @@
         var width = 1600 - margin.left - margin.right
         var height = 900 - margin.top - margin.bottom 
         var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
-        var data = [];
+        var data = []
 
-        const svg = d3
+        var svg = d3
             .select("#scene4")
             .append("svg")
             .attr("id", "graph")
@@ -29,32 +28,33 @@
 
         function updateChart() {
 
-            formatDate = d3.utcFormat("%B %-d, %Y")
-            formatValue = d3.format(".2f")
-            parseDate = d3.utcParse("%Y-%m-%d")
-            formatChange = function() {
+            var formatDate = d3.utcFormat("%B %-d, %Y")
+            var formatValue = d3.format(".2f")
+            var parseDate = d3.utcParse("%Y-%m-%d")
+            var formatChange = function() {
                 const f = d3.format("+.2%");
                 return (y0, y1) => f((y1 - y0) / y0);
             }
 
             x = d3.scaleBand()
                 .domain(d3.utcDay
-                    .range(data[0].Date, +data[data.length - 1].Date + 1)
+                    .range(data[0].date, +data[data.length - 1].date + 1)
                     .filter(d => d.getUTCDay() !== 0 && d.getUTCDay() !== 6))
                 .range([margin.left, width - margin.right])
                 .padding(0.2)
 
             xAxis = g => g
                 .attr("transform", `translate(0,${height - margin.bottom})`)
-                .call(d3.axisBottom(x)
+                .call(d3.axisBottom(x).tickValues([data[0].date, data[data.length -1].date])
                     .tickValues(d3.utcMonday
                         .every(width > 720 ? 1 : 2)
                         .range(data[0].Date, data[data.length - 1].date))
-                    .tickFormat(d3.utcFormat("%-m/%-d")))
+                    .tickFormat(d3.utcFormat("%-m/%-d"))
+                )
                 .call(g => g.select(".domain").remove())
 
             y = d3.scaleLog()
-                .domain([d3.min(data, d => d.Low), d3.max(data, d => d.High)])
+                .domain([d3.min(data, d => d.low), d3.max(data, d => d.high)])
                 .rangeRound([height - margin.bottom, margin.top])
 
             yAxis = g => g
@@ -67,9 +67,23 @@
                     .attr("x2", width - margin.left - margin.right))
                 .call(g => g.select(".domain").remove())
 
-
+            // add x axis 
             svg.append("g")
-            .call(xAxis)
+                .attr("transform", "translate(0, " + height + ")")
+                .call(
+                    d3.axisBottom(x)
+                    .tickValues(
+                        x.domain().filter(function(d,i) { return !(i%25)})
+                    )
+                    .tickFormat(function(d) {  return new Date(d).toLocaleDateString("en-US"); })
+                )
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+
+
+            // svg.append("g")
+            // .call(xAxis)
 
             svg.append("g")
             .call(yAxis)
@@ -80,35 +94,71 @@
                 .selectAll("g")
                 .data(data)
                 .join("g")
-                .attr("transform", d => `translate(${x(d.Date)},0)`);
+                .attr("transform", d => `translate(${x(d.date)},0)`);
 
-            // g.append("line")
-            // .attr("y1", d => y(d.low))
-            // .attr("y2", d => y(d.high))
 
-            // g.append("line")
-            // .attr("y1", d => y(d.Open))
-            // .attr("y2", d => y(d.Close))
-            // .attr("stroke-width", x.bandwidth)
-            // .attr("stroke", d => d.Open > d.Close ? d3.schemeSet1[0]
-            // : d.close > d.open ? d3.schemeSet1[2]
-            // : d3.schemeSet1[8])
+            g.append("line")
+            .attr("y1", d => y(d.low))
+            .attr("y2", d => y(d.high))
 
-            // g.append("title")
-            //     .text(d => `${formatDate(d.Date)}
-            // Open: ${formatValue(d.Open)}
-            // Close: ${formatValue(d.Close)} (${formatChange(d.Open, d.Close)})
-            // Low: ${formatValue(d.Low)}
-            // High: ${formatValue(d.High)}`);
+            g.append("line")
+            .attr("y1", d => y(d.open))
+            .attr("y2", d => y(d.close))
+            .attr("stroke-width", x.bandwidth)
+            .attr("stroke", d => d.open > d.close ? d3.schemeSet1[0]
+            : d.close > d.open ? d3.schemeSet1[2]
+            : d3.schemeSet1[8])
+            .on("mouseover", function(d,i) {
+                tooltip
+                .style("opacity", 1)
+                .style("left", (d3.event.pageX+50)+"px")
+                .style("top", (d3.event.pageY)+"px")
+                .html(`Date: ${d.date.toLocaleDateString("en-US")}<br/>
+                Open: $ ${d.open}<br/>
+                Close: $ ${d.close}<br/>
+                High: $ ${d.high}<br/>
+                Low: $ ${d.close}`)
+            })
+            .on("mouseout", function(d,i) {
+                tooltip
+                .style("opacity", 0)
+            })
+
+
+            svg.append("text")      // text label for the x axis
+                .attr("x", 700 )
+                .attr("y", 870 )
+                .style("text-anchor", "middle")
+                .text("Date");
+
+                svg.append("text")
+                        .attr("transform", "rotate(-90)")
+                        .attr("y", 0 - margin.left)
+                        .attr("x",0 - (height / 2))
+                        .attr("dy", "1em")
+                        .style("text-anchor", "middle")
+                        .text("Stock Price");
+
+
         }
 
         // grab dataset
         d3
             .csv("https://raw.githubusercontent.com/rsteinmetz/rsteinmetz.github.io/master/cs-498/data/tesla-stock.csv")
             .then((d) => {
-                data = d
-                console.log(d);
-                updateChart(d)
+                var parseDate = d3.utcParse("%Y-%m-%d");
+                var a = [];
+                for (var i = 0; i < d.length; i++) {
+                    a.push({
+                        date: parseDate(d[i].date),
+                        high: +d[i].high,
+                        low: +d[i].low,
+                        open: +d[i].open,
+                        close: +d[i].close
+                    })
+                }
+                data = _.sortBy(a, 'date').slice(-360)
+                updateChart()
             })
     </script>
 </div>

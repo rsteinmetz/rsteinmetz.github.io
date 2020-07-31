@@ -31,6 +31,7 @@
     <div id="tooltip"></div>
     <div id="scene3"></div>
     <script>
+
         $(".parameter").change(function() {
             updateChart();
         })
@@ -168,7 +169,7 @@
                         .append("path")
                         .datum(fuelType)
                         .attr("fill", "none")
-                        .attr("stroke", function(d) { console.log("d", d[i]); return color(d[i].name)})
+                        .attr("stroke", function(d) { return color(d[i].name)})
                         .attr("stroke-width", 5)
                         .attr("stroke-linejoin", "round")
                         .attr("storke-linecap", "round")
