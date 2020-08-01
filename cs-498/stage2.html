@@ -11,7 +11,6 @@
     <div id="scene2">
     </div>
     <script>
-        $(document).ready(function() {
             var margin = {
                 top: 30,
                 right: 30,
@@ -27,7 +26,7 @@
             var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
             var annotation = d3.select("#annotation").attr("pointer-events", "none")
 
-            $(":checkbox").change(function(e) {
+            d3.selectAll("#ice").on("change", function() {
                 filteredData = data.filter((n) => { return parseInt(n.year) <= parseInt(`${dateRangeText.innerHTML}`) });
                 if (this.id == "ice") {
                     if (this.checked == false) {
@@ -35,15 +34,17 @@
                     }  
                 } 
                 updateChart();
-                // console.log(this.checked);
-                // console.log(this.id)
-                // alert("change " + this.checked);
             })
 
             dateSlider.oninput = function() {
                 dateRangeText.innerHTML = this.value
-
                 filteredData = data.filter((n) => { return parseInt(n.year) <= parseInt(`${this.value.toString()}`) })
+
+                var checked = d3.select("#ice").property("checked")
+                if (checked == false) {
+                    filteredData = filteredData.filter((n) => { return n.fuelType == "Electricity"})
+                }
+
                 updateChart()
             }
 
@@ -208,21 +209,7 @@
             .then((d) => {
                 data = d.filter((n) => { return parseInt(n.year) >= 2011 && parseInt(n.year) < 2021 })
                 filteredData = data.filter((n) => { return parseInt(n.year) == 2011})
-            //     data = d.filter((n) => { return n.fuelType == "Electricity" 
-            //     && (n.make == "Audi" 
-            //     || n.make == "BMW" 
-            //     || n.make == "Chevrolet"
-            //     || n.make == "Hyundai"
-            //     || n.make == "Kia"
-            //     || n.make == "Nissan"
-            //     || n.make == "Porsche"
-            //     || n.make == "Tesla"
-            //     || n.make == "Volkswagen"
-            //     || n.make == "Honda")
-            // })
-                //filteredData = data.filter((n) => { return n.year == "1998"; })
                 updateChart()
             })
-        })
     </script>
 </div>

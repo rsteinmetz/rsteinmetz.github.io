@@ -32,7 +32,7 @@
     <div id="scene3"></div>
     <script>
 
-        $(".parameter").change(function() {
+        d3.selectAll(".parameter").on("change", function() {
             updateChart();
         })
 
@@ -42,12 +42,12 @@
         function populateData() {
 
             // grab the parameters from the HTML 
-            var old_car_mpg = parseFloat($("#mpg").val())
-            var old_car_miles = parseFloat($("#miles").val())
-            var averageElectricityCostPerkWh = parseFloat($("#kwh").val())
-            var averageFastCostPerkWh = parseFloat($("#fast").val())
-            var averageGasolineCost = parseFloat($("#gasCost").val())
-            var milesPerKwh = parseFloat($("#mpkwh").val())
+            var old_car_mpg = parseFloat(d3.select("#mpg").property("value"))
+            var old_car_miles = parseFloat(d3.select("#miles").property("value"))
+            var averageElectricityCostPerkWh = parseFloat(d3.select("#kwh").property("value"))
+            var averageFastCostPerkWh = parseFloat(d3.select("#fast").property("value"))
+            var averageGasolineCost = parseFloat(d3.select("#gasCost").property("value"))
+            var milesPerKwh = parseFloat(d3.select("#mpkwh").property("value"))
 
             // set up the return structure 
             var data = []

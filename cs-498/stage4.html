@@ -3,15 +3,15 @@
     </div>
     <div id="tooltip"></div>
     <div id="buttonCenter">
-        <button id="action">Play</button>
+        <button id="action" onclick="buttonClick()">Play</button>
     </div>
     <div id="scene4"></div>
     <script>
         var timer;
 
-        var baseDate = new Date("2012-01-01")
+        var baseDate = new Date("2020-01-01")
         var endDate = new Date("2020-07-30")
-        var currentDate = new Date("2012-02-01")
+        var currentDate = new Date("2020-02-01")
 
         function addDays(date, days) {
             var result = date;
@@ -19,22 +19,24 @@
             return result;
         }
 
-        $("#action").click(function() {
-            if ($(this).text() == "Play") {
+        buttonClick = function() {
+            var button = document.getElementById("action")
+            if (button.innerHTML == "Play") {
+                currentDate = new Date("2020-02-01")
                 timer = setInterval(function() {
-                    currentDate =  new Date(addDays(new Date(currentDate), 30));
+                    currentDate =  new Date(addDays(new Date(currentDate), 5));
                     updateChart();
                     if (currentDate > new Date("2020-07-30")) {
                         clearInterval(timer);
-                        $("#action").text("Play")
+                        button.innerHTML = "Play"
                     }
                 }, 100)
-                $("#action").text("Stop")
+                button.innerHTML = "Stop"
             } else {
                 clearInterval(timer)
-                $("#action").text("Play")
+                button.innerHTML = "Play"
             }
-        })
+        }
 
         // initailize screen data
         var margin = {
@@ -56,16 +58,17 @@
             .attr("width", "100%")
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .call(d3.zoom().on("zoom", function () {
+                svg.attr("transform", d3.event.transform)
+            }))
 
 
         function updateChart() {
-            console.log(currentDate);
             filteredData = _.filter(data, function(f) { 
                 return f.date.toISOString().slice(0,10) <= new Date(currentDate).toISOString().slice(0,10) && f.date.toISOString().slice(0,10) >= new Date(baseDate).toISOString().slice(0,10) 
             })
             filteredData = _.sortBy(filteredData, 'date')
-            console.log(filteredData);
 
             var min = 0;
             var max = 0;
@@ -87,8 +90,6 @@
             }
 
             // we have dates, need to filter down the dataset to be the
-            console.log("min range", data[0].date)
-            console.log("max range", data[data.length - 1].date + 1)
             x = d3.scaleBand()
                 .domain(d3.utcDay
                     .range(data[0].date, +data[data.length - 1].date + 1)
@@ -107,7 +108,7 @@
                 )
                 .call(g => g.select(".domain").remove())
 
-            y = d3.scaleLog()
+            y = d3.scaleLinear()
                 .domain([d3.min(data, d => d.low), d3.max(data, d => d.high)])
                 .rangeRound([height - margin.bottom, margin.top])
 
@@ -214,7 +215,6 @@
                     return new Date(d.date).toISOString().slice(0,10) >= new Date(baseDate).toISOString().slice(0,10) 
                 })
                 data = _.sortBy(results, 'date');
-                console.log(`data`, data);
                 updateChart()
             })
     </script>
