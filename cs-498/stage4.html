@@ -9,9 +9,9 @@
     <script>
         var timer;
 
-        var baseDate = new Date("2010-06-30")
+        var baseDate = new Date("2012-01-01")
         var endDate = new Date("2020-07-30")
-        var currentDate = new Date("2010-07-30")
+        var currentDate = new Date("2012-02-01")
 
         function addDays(date, days) {
             var result = date;
@@ -25,7 +25,6 @@
                     currentDate =  new Date(addDays(new Date(currentDate), 30));
                     updateChart();
                     if (currentDate > new Date("2020-07-30")) {
-                        alert("stop timer");
                         clearInterval(timer);
                         $("#action").text("Play")
                     }
@@ -44,7 +43,7 @@
             bottom: 70,
             left: 60
         }
-        var width = 1600 - margin.left - margin.right
+        var width = 1400 - margin.left - margin.right
         var height = 900 - margin.top - margin.bottom 
         var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
         var data = []
@@ -61,10 +60,12 @@
 
 
         function updateChart() {
+            console.log(currentDate);
             filteredData = _.filter(data, function(f) { 
-                return f.date.toISOString().slice(0,10) <= new Date(currentDate).toISOString().slice(0,10)
-                })
+                return f.date.toISOString().slice(0,10) <= new Date(currentDate).toISOString().slice(0,10) && f.date.toISOString().slice(0,10) >= new Date(baseDate).toISOString().slice(0,10) 
+            })
             filteredData = _.sortBy(filteredData, 'date')
+            console.log(filteredData);
 
             var min = 0;
             var max = 0;
@@ -86,7 +87,8 @@
             }
 
             // we have dates, need to filter down the dataset to be the
-
+            console.log("min range", data[0].date)
+            console.log("max range", data[data.length - 1].date + 1)
             x = d3.scaleBand()
                 .domain(d3.utcDay
                     .range(data[0].date, +data[data.length - 1].date + 1)
@@ -96,7 +98,7 @@
 
             xAxis = g => g
                 .attr("transform", `translate(0,${height - margin.bottom})`)
-                .call(d3.axisBottom(x).tickValues([data[0].date, data[filteredData.length -1].date])
+                .call(d3.axisBottom(x).tickValues([data[0].date, data[data.length -1].date])
                     .tickValues(d3.utcMonday
                         // .every(width > 720 ? 1 : 2)
                         .every(100)
@@ -127,8 +129,9 @@
                 .attr("transform", "translate(0, " + height + ")")
                 .call(
                     d3.axisBottom(x)
+                    // .ticks(d3.timeYear)
                     .tickValues(
-                        x.domain().filter(function(d,i) { return !(i%25)})
+                        x.domain().filter(function(d,i) { return !(i%100)})
                     )
                     .tickFormat(function(d) {  return new Date(d).toLocaleDateString("en-US"); })
                 )
@@ -202,15 +205,16 @@
                 var parseDate = d3.utcParse("%Y-%m-%d");
                 results.forEach(function(d) {      
                     d.date = parseDate(d.date);
-                    d.high = parseInt(d.high.trim().substring(0, d.high.indexOf(".")).replace(",",""))
-                    d.low = parseInt(d.low.trim().substring(0, d.low.indexOf(".")).replace(",",""))
-                    d.open = parseInt(d.open.trim().substring(0, d.open.indexOf(".")).replace(",",""))
-                    if (isNaN(d.open)) {
-                        d.open = d.low
-                    }
-                    d.close = parseInt(d.close.trim().substring(0, d.close.indexOf(".")).replace(",",""))
+                    d.high = parseInt(d.high)
+                    d.low = parseInt(d.low)
+                    d.open = parseInt(d.open)
+                    d.close = parseInt(d.close)
                 });
+                results = _.filter(results, function(d) {
+                    return new Date(d.date).toISOString().slice(0,10) >= new Date(baseDate).toISOString().slice(0,10) 
+                })
                 data = _.sortBy(results, 'date');
+                console.log(`data`, data);
                 updateChart()
             })
     </script>
