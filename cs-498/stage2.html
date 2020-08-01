@@ -91,10 +91,10 @@
                 //     annotation
                 //     .style("opacity", 1)
                 //     .html(`In 2013, the technology is getting more mature and we can see an increase in efficency.`)
-                // } else if (parseInt(dateRangeText.innerHTML) == 2020) {
-                //     annotation
-                //     .style("opacity", 1)
-                //     .html(`There are many more electric vehicles being produced today. We can also see that the efficency has increased since they were first released.`)
+                } else if (parseInt(dateRangeText.innerHTML) == 2020) {
+                    annotation
+                    .style("opacity", 1)
+                    .html(`We can see that the efficency of hybrid and fully electric vehicles are out performing their ICE counterparts.`)
                 } else {
                     annotation
                     .style("opacity", 0)
@@ -209,6 +209,29 @@
                     .text(function(d) { return d})
                     .attr("text-anchor", "left")
                     .style("alignment-baseline", "middle")
+
+
+                    if (d3.select("#ice").property("checked")) {
+                        svg
+                        .append("g")
+                        .append("circle")
+                        .attr("r", 150)
+                        .attr("stroke-width", 5)
+                        .attr("stroke", "black")
+                        .attr("fill", "none")
+                        .attr("stroke", "black")
+                        .attr("cx", 150)
+                        .attr("cy", 650)
+
+                        svg
+                        .append("g")
+                        .append("text")
+                        .attr("x", 150)
+                        .attr("y", 475)
+                        .attr("fill", "black")
+                        .text("ICE Vehicles")
+                    }
+
             }
 
             // grab dataset
