@@ -23,17 +23,6 @@
             var dateSlider = document.getElementById("dateRange")
             var dateRangeText = document.getElementById("dateRangeText")
             var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
-            var annotation = d3.select("#scene2").append("div")
-                    .attr("id", "annotation")
-                    .attr("pointer-events", "none")                    
-                    .style("opacity", 0)
-                    .style("position", "absolute")
-                    .style("background-color", "lightgray")
-                    .style("border", "1px solid black")
-                    .style("left", "500px")
-                    .style("top", "400x")
-                    .style("max-width", "400px")
-                    .style("padding", "10px")
 
             d3.selectAll("#ice").on("change", function() {
                 filteredData = data.filter((n) => { return parseInt(n.year) <= parseInt(`${dateRangeText.innerHTML}`) });
@@ -68,38 +57,14 @@
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            
+
 
             updateChart = function() {
 
                 svg.exit().remove()
                 d3.select("g").selectAll("*").remove()
-
-                if (parseInt(dateRangeText.innerHTML) == 2011) {
-                    annotation
-                    .style("opacity", 1)
-                    .html(`Toggle the checkbox above to see the difference between Internal Combustion Engine vehicles and Electric Vehicles.<br/><br/>ICE vehicles have lower efficency than their electric counterparts.`)
-                // else if (parseInt(dateRangeText.innerHTML) >= 2002 && parseInt(dateRangeText.innerHTML) < 2011) {
-                //     // add another notation to the screen indicating there were no EVs made during this year
-                //     annotation
-                //     .style("opacity", 1)
-                //     .html(`No new electric vehicles were produced in the early to mid 2000's.`)
-                // } else if (parseInt(dateRangeText.innerHTML) == 2012) { 
-                //     annotation
-                //     .style("opacity", 1)
-                //     .html(`In 2012 we can see more car manufactuerers producing electric vehicles. We can also see that compared to the prior iterations the efficency is increasing as well.`)
-                // } else if (parseInt(dateRangeText.innerHTML) == 2013) {
-                //     annotation
-                //     .style("opacity", 1)
-                //     .html(`In 2013, the technology is getting more mature and we can see an increase in efficency.`)
-                } else if (parseInt(dateRangeText.innerHTML) == 2020) {
-                    annotation
-                    .style("opacity", 1)
-                    .html("You can see that the efficency of hybrid and fully electric vehicles are out performing their ICE counterparts.")
-                } else {
-                    annotation
-                    .style("opacity", 0)
-                }
-
+                
                 var fuelTypeCount = []
                 var legendObject = []
                 var unique = [...new Set(filteredData.map(item => item.yaer))];
@@ -231,6 +196,84 @@
                         .attr("fill", "black")
                         .text("ICE Vehicles")
                     }
+
+                var rectContainer = svg
+                .append("g")
+
+                rectContainer
+                .append("rect")
+                .attr("x", 20)
+                .attr("y", 20)
+                .attr("width", 300)
+                .attr("height", 100)
+                .attr("fill", "lightgray")
+                .attr("border", "1")
+                .style("stroke", "black")
+                .style("padding", "10px")
+
+                if (parseInt(dateRangeText.innerHTML) == 2011) {
+                    rectContainer
+                    .append("text")
+                    .attr("x", 25)
+                    .attr("y", 45)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text("Toggle the checkbox above to see the difference")
+                    rectContainer
+                    .append("text")
+                    .attr("x", 25)
+                    .attr("y", 65)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text("between Internal Combustion Engine vehicles")
+                    rectContainer
+                    .append("text")
+                    .attr("x", 25)
+                    .attr("y", 85)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text("and Electric Vehicles. ICE vehicles have lower")
+                    rectContainer
+                    .append("text")
+                    .attr("x", 25)
+                    .attr("y", 105)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text("efficency than their electric counterparts.")
+                } else if (parseInt(dateRangeText.innerHTML) == 2020) {
+                    rectContainer
+                    .append("text")
+                    .attr("x", 25)
+                    .attr("y", 45)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .html("You can see that the efficency of hybrid and")
+                    rectContainer
+                    .append("text")
+                    .attr("x", 25)
+                    .attr("y", 65)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .html("fully electric vehicles are out performing their")
+                    rectContainer
+                    .append("text")
+                    .attr("x", 25)
+                    .attr("y", 85)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .html("ICE counterparts.")
+                } else {
+                    rectContainer
+                    .style("opacity", 0)
+                }
+
 
             }
 
