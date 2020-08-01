@@ -97,7 +97,7 @@
 
             xAxis = g => g
                 .attr("transform", `translate(0,${height - margin.bottom})`)
-                .call(d3.axisBottom(x).ticks(12).tickSizeOuter(0))
+                .call(d3.axisBottom(x).ticks(10).tickSizeOuter(0))
 
             svg.append("g")
                 .call(xAxis);
@@ -229,7 +229,7 @@
             bottom: 70,
             left: 60
         }
-        var width = 1600 - margin.left - margin.right
+        var width = 1400 - margin.left - margin.right
         var height = 900 - margin.top - margin.bottom 
         var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
 
@@ -247,6 +247,26 @@
             var data = populateData();
             d3.selectAll("g > *").remove()
             drawLinePoints(svg, data)
+
+            lastMonth = _.filter(data, function(d) { return d.month == 12 })
+            lastGas = _.head(_.filter(lastMonth, function(d) { return d.name == "Gasoline Cost" }))
+            lastFast = _.head(_.filter(lastMonth, function(d) { return d.name == "Fast Charging Cost" }))
+            lastHome = _.head(_.filter(lastMonth, function(d) { return d.name == "Home Charging Cost" }))
+
+            // update annotation
+            var annotation = d3.select("#scene3").append("div")
+                    .attr("id", "annotation")
+                    .attr("pointer-events", "none")                    
+                    .style("opacity", 1)
+                    .style("position", "absolute")
+                    .style("background-color", "lightgray")
+                    .style("border", "1px solid black")
+                    .style("left", "400px")
+                    .style("top", "900px")
+                    .style("max-width", "400px")
+                    .style("padding", "10px")
+                    .html(`You would save $${lastGas.value - lastFast.value} per year using a fast charging station and $${lastGas.value - lastHome.value} per year charging at home.`)
+
         }
 
         updateChart()
