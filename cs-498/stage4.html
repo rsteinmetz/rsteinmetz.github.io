@@ -2,38 +2,40 @@
     <div class="slideIntroText">
     </div>
     <div id="tooltip"></div>
-    <div>
-        <button>Play</button>
-        <button>Reset</button>
-        <div class="align-center">
-            <span id="dateRangeStartText"></span> to <span id="dateRangeEndText"></span>
-        </div>
-        <input id="stockSlider" class="stockSlider" type="range" min="0" max="82" value="0" class="slider" id="dateRange"/>
+    <div id="buttonCenter">
+        <button id="action">Play</button>
     </div>
     <div id="scene4"></div>
     <script>
+        var timer;
+
+        var baseDate = new Date("2010-06-30")
+        var endDate = new Date("2020-07-30")
+        var currentDate = new Date("2010-07-30")
+
         function addDays(date, days) {
             var result = date;
             date.setHours(date.getHours() + (24 * days))
             return result;
         }
 
-        var baseDate = new Date("2010-06-30")
-        var stockSlider = document.getElementById("stockSlider")
-        var startTime = document.getElementById("dateRangeStartText")
-        var endTime = document.getElementById("dateRangeEndText")
-        $("#dateRangeStartText").text(baseDate.toLocaleDateString("en-US"))
-        $("#dateRangeEndText").text(new Date(baseDate.setDate(baseDate.getDate() + 182)).toLocaleDateString("en-US"))
-
-        stockSlider.oninput = function() {
-            var currentStart = new Date(startTime.textContent)
-            var newStartDate = new Date(addDays(new Date(currentStart), this.value));
-            var newEndDate = new Date(addDays(new Date(newStartDate), 182))
-
-            $("#dateRangeStartText").text(newStartDate.toLocaleDateString("en-US"))
-            $("#dateRangeEndText").text(newEndDate.toLocaleDateString("en-US"))
-            updateChart()
-        }
+        $("#action").click(function() {
+            if ($(this).text() == "Play") {
+                timer = setInterval(function() {
+                    currentDate =  new Date(addDays(new Date(currentDate), 30));
+                    updateChart();
+                    if (currentDate > new Date("2020-07-30")) {
+                        alert("stop timer");
+                        clearInterval(timer);
+                        $("#action").text("Play")
+                    }
+                }, 100)
+                $("#action").text("Stop")
+            } else {
+                clearInterval(timer)
+                $("#action").text("Play")
+            }
+        })
 
         // initailize screen data
         var margin = {
@@ -59,14 +61,13 @@
 
 
         function updateChart() {
-
-            var start = $("#dateRangeStartText").text()
-            var end = $("#dateRangeEndText").text()
             filteredData = _.filter(data, function(f) { 
-                console.log(f.date.toISOString().slice(0,10))
-                return f.date.toISOString().slice(0,10) >= new Date(start).toISOString().slice(0,10) && f.date.toISOString().slice(0,10) <= new Date(end).toISOString().slice(0,10) 
+                return f.date.toISOString().slice(0,10) <= new Date(currentDate).toISOString().slice(0,10)
                 })
             filteredData = _.sortBy(filteredData, 'date')
+            console.log(data)
+            console.log("min", d3.min(data, d => d.low))
+            console.log("max", d3.max(data, d => d.high))
 
             var formatDate = d3.utcFormat("%B %-d, %Y")
             var formatValue = d3.format(".2f")
@@ -80,16 +81,17 @@
 
             x = d3.scaleBand()
                 .domain(d3.utcDay
-                    .range(filteredData[0].date, +filteredData[filteredData.length - 1].date + 1)
+                    .range(data[0].date, +data[data.length - 1].date + 1)
                     .filter(d => d.getUTCDay() !== 0 && d.getUTCDay() !== 6))
                 .range([margin.left, width - margin.right])
                 .padding(0.2)
 
             xAxis = g => g
                 .attr("transform", `translate(0,${height - margin.bottom})`)
-                .call(d3.axisBottom(x).tickValues([filteredData[0].date, filteredData[filteredData.length -1].date])
+                .call(d3.axisBottom(x).tickValues([data[0].date, data[filteredData.length -1].date])
                     .tickValues(d3.utcMonday
-                        .every(width > 720 ? 1 : 2)
+                        // .every(width > 720 ? 1 : 2)
+                        .every(100)
                         .range(filteredData[0].Date, filteredData[filteredData.length - 1].date))
                     .tickFormat(d3.utcFormat("%-m/%-d"))
                 )
@@ -187,7 +189,7 @@
 
         // grab dataset
         d3
-            .csv("https://raw.githubusercontent.com/rsteinmetz/rsteinmetz.github.io/master/cs-498/data/tesla-stock.csv")
+            .csv("https://raw.githubusercontent.com/rsteinmetz/rsteinmetz.github.io/master/cs-498/data/tesla-stock1.csv")
             .then((d) => {
                 var parseDate = d3.utcParse("%Y-%m-%d");
                 var a = [];
