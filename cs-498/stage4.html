@@ -3,12 +3,36 @@
     </div>
     <div id="tooltip"></div>
     <div>
-        2010
-        <input class="stockSlider" type="range" min="1984" max="2020" value="1984" class="slider" id="dateRange"/>
-        2020
+        <div class="align-center">
+            <span id="dateRangeStartText"></span> to <span id="dateRangeEndText"></span>
+        </div>
+        <input id="stockSlider" class="stockSlider" type="range" min="0" max="30" value="0" class="slider" id="dateRange"/>
     </div>
     <div id="scene4"></div>
     <script>
+        function addDays(date, days) {
+            var result = date;
+            date.setHours(date.getHours() + (24 * days))
+            return result;
+        }
+
+        var baseDate = new Date("2010-06-30")
+        var stockSlider = document.getElementById("stockSlider")
+        var startTime = document.getElementById("dateRangeStartText")
+        var endTime = document.getElementById("dateRangeEndText")
+        $("#dateRangeStartText").text(baseDate.toLocaleDateString("en-US"))
+        $("#dateRangeEndText").text(new Date(baseDate.setDate(baseDate.getDate() + 90)).toLocaleDateString("en-US"))
+
+        stockSlider.oninput = function() {
+            var currentStart = new Date(startTime.textContent)
+            var newStartDate = new Date(addDays(new Date(currentStart), this.value));
+            var newEndDate = new Date(addDays(new Date(newStartDate), 90))
+
+            $("#dateRangeStartText").text(newStartDate.toLocaleDateString("en-US"))
+            $("#dateRangeEndText").text(newEndDate.toLocaleDateString("en-US"))
+            updateChart()
+        }
+
         // initailize screen data
         var margin = {
             top: 30,
@@ -20,6 +44,7 @@
         var height = 900 - margin.top - margin.bottom 
         var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
         var data = []
+        var filteredData = []
 
         var svg = d3
             .select("#scene4")
@@ -33,6 +58,14 @@
 
         function updateChart() {
 
+            var start = $("#dateRangeStartText").text()
+            var end = $("#dateRangeEndText").text()
+            filteredData = _.filter(data, function(f) { 
+                console.log(f.date.toISOString().slice(0,10))
+                return f.date.toISOString().slice(0,10) >= new Date(start).toISOString().slice(0,10) && f.date.toISOString().slice(0,10) <= new Date(end).toISOString().slice(0,10) 
+                })
+            filteredData = _.sortBy(filteredData, 'date')
+
             var formatDate = d3.utcFormat("%B %-d, %Y")
             var formatValue = d3.format(".2f")
             var parseDate = d3.utcParse("%Y-%m-%d")
@@ -41,25 +74,27 @@
                 return (y0, y1) => f((y1 - y0) / y0);
             }
 
+            // we have dates, need to filter down the dataset to be the
+
             x = d3.scaleBand()
                 .domain(d3.utcDay
-                    .range(data[0].date, +data[data.length - 1].date + 1)
+                    .range(filteredData[0].date, +filteredData[filteredData.length - 1].date + 1)
                     .filter(d => d.getUTCDay() !== 0 && d.getUTCDay() !== 6))
                 .range([margin.left, width - margin.right])
                 .padding(0.2)
 
             xAxis = g => g
                 .attr("transform", `translate(0,${height - margin.bottom})`)
-                .call(d3.axisBottom(x).tickValues([data[0].date, data[data.length -1].date])
+                .call(d3.axisBottom(x).tickValues([filteredData[0].date, filteredData[filteredData.length -1].date])
                     .tickValues(d3.utcMonday
                         .every(width > 720 ? 1 : 2)
-                        .range(data[0].Date, data[data.length - 1].date))
+                        .range(filteredData[0].Date, filteredData[filteredData.length - 1].date))
                     .tickFormat(d3.utcFormat("%-m/%-d"))
                 )
                 .call(g => g.select(".domain").remove())
 
             y = d3.scaleLog()
-                .domain([d3.min(data, d => d.low), d3.max(data, d => d.high)])
+                .domain([d3.min(filteredData, d => d.low), d3.max(filteredData, d => d.high)])
                 .rangeRound([height - margin.bottom, margin.top])
 
             yAxis = g => g
@@ -97,10 +132,16 @@
                 .attr("stroke-linecap", "round")
                 .attr("stroke", "black")
                 .selectAll("g")
-                .data(data)
+                .data(filteredData)
                 .join("g")
                 .attr("transform", d => `translate(${x(d.date)},0)`);
 
+            // // exit the old elemeents
+            // d3.selectAll("line")
+            // .exit()
+            // //.transition(t)
+            // // .attr("y", 0)
+            // .remove();
 
             g.append("line")
             .attr("y1", d => y(d.low))
@@ -162,7 +203,7 @@
                         close: +d[i].close
                     })
                 }
-                data = _.sortBy(a, 'date').slice(-500)
+                data = _.sortBy(a, 'date');
                 updateChart()
             })
     </script>
