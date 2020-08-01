@@ -253,20 +253,47 @@
             lastFast = _.head(_.filter(lastMonth, function(d) { return d.name == "Fast Charging Cost" }))
             lastHome = _.head(_.filter(lastMonth, function(d) { return d.name == "Home Charging Cost" }))
 
-            // update annotation
-            var annotation = d3.select("#scene3").append("div")
-                    .attr("id", "annotation")
-                    .attr("pointer-events", "none")                    
-                    .style("opacity", 1)
-                    .style("position", "absolute")
-                    .style("background-color", "lightgray")
-                    .style("border", "1px solid black")
-                    .style("left", "400px")
-                    .style("top", "900px")
-                    .style("max-width", "400px")
-                    .style("padding", "10px")
-                    .html(`You would save $${(lastGas.value - lastFast.value).toFixed(0)} per year using a fast charging station and $${(lastGas.value - lastHome.value).toFixed(0)} per year charging at home.`)
+            var rectContainer = svg
+                .append("g")
 
+                rectContainer
+                .append("rect")
+                .attr("x", 75)
+                .attr("y", 20)
+                .attr("width", 300)
+                .attr("height", 100)
+                .attr("fill", "lightgray")
+                .attr("border", "1")
+                .style("stroke", "black")
+                .style("padding", "10px")
+
+                rectContainer
+                    .append("text")
+                    .attr("x", 80)
+                    .attr("y", 45)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text(`You would save $${(lastGas.value - lastFast.value).toFixed(0)} per year using a fast`)
+
+
+                    rectContainer
+                    .append("text")
+                    .attr("x", 80)
+                    .attr("y", 65)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text(`charging station and $${(lastGas.value - lastHome.value).toFixed(0)} per year charging`)
+
+                    rectContainer
+                    .append("text")
+                    .attr("x", 80)
+                    .attr("y", 85)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text(`at home.`)
         }
 
         updateChart()
