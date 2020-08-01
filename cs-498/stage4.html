@@ -217,19 +217,37 @@
                         .attr("fill", "black")
                         .text("Model Y Released")
 
+                        var rectContainer = svg
+                .append("g")
 
-                var annotation = d3.select("#scene4").append("div")
-                    .attr("id", "annotation")
-                    .attr("pointer-events", "none")                    
-                    .style("opacity", 1)
-                    .style("position", "absolute")
-                    .style("background-color", "lightgray")
-                    .style("border", "1px solid black")
-                    .style("left", "400px")
-                    .style("top", "800px")
-                    .style("max-width", "400px")
+                rectContainer
+                .append("rect")
+                .attr("x", 75)
+                .attr("y", 20)
+                .attr("width", 300)
+                .attr("height", 100)
+                .attr("fill", "lightgray")
+                .attr("border", "1")
+                .style("stroke", "black")
+                .style("padding", "10px")
+
+                rectContainer
+                    .append("text")
+                    .attr("x", 80)
+                    .attr("y", 45)
+                    .attr("width", 50)
+                    .attr("height", 200)
                     .style("padding", "10px")
-                    .html(`When the Model Y was released you can see that the stock price has dramatically increased.`)
+                    .text(`When the Model Y was released you can see`)
+
+                rectContainer
+                    .append("text")
+                    .attr("x", 80)
+                    .attr("y", 65)
+                    .attr("width", 50)
+                    .attr("height", 200)
+                    .style("padding", "10px")
+                    .text(`that the stock price has dramatically increased.`)
 
                 }
 
