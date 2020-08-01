@@ -3,10 +3,12 @@
     </div>
     <div id="tooltip"></div>
     <div>
+        <button>Play</button>
+        <button>Reset</button>
         <div class="align-center">
             <span id="dateRangeStartText"></span> to <span id="dateRangeEndText"></span>
         </div>
-        <input id="stockSlider" class="stockSlider" type="range" min="0" max="30" value="0" class="slider" id="dateRange"/>
+        <input id="stockSlider" class="stockSlider" type="range" min="0" max="82" value="0" class="slider" id="dateRange"/>
     </div>
     <div id="scene4"></div>
     <script>
@@ -21,12 +23,12 @@
         var startTime = document.getElementById("dateRangeStartText")
         var endTime = document.getElementById("dateRangeEndText")
         $("#dateRangeStartText").text(baseDate.toLocaleDateString("en-US"))
-        $("#dateRangeEndText").text(new Date(baseDate.setDate(baseDate.getDate() + 30)).toLocaleDateString("en-US"))
+        $("#dateRangeEndText").text(new Date(baseDate.setDate(baseDate.getDate() + 182)).toLocaleDateString("en-US"))
 
         stockSlider.oninput = function() {
             var currentStart = new Date(startTime.textContent)
             var newStartDate = new Date(addDays(new Date(currentStart), this.value));
-            var newEndDate = new Date(addDays(new Date(newStartDate), 30))
+            var newEndDate = new Date(addDays(new Date(newStartDate), 182))
 
             $("#dateRangeStartText").text(newStartDate.toLocaleDateString("en-US"))
             $("#dateRangeEndText").text(newEndDate.toLocaleDateString("en-US"))
@@ -94,7 +96,7 @@
                 .call(g => g.select(".domain").remove())
 
             y = d3.scaleLog()
-                .domain([d3.min(filteredData, d => d.low), d3.max(filteredData, d => d.high)])
+                .domain([d3.min(data, d => d.low), d3.max(data, d => d.high)])
                 .rangeRound([height - margin.bottom, margin.top])
 
             yAxis = g => g
@@ -106,6 +108,9 @@
                     .attr("stroke-opacity", 0.2)
                     .attr("x2", width - margin.left - margin.right))
                 .call(g => g.select(".domain").remove())
+
+
+            svg.selectAll("g").remove();
 
             // add x axis 
             svg.append("g")
@@ -121,9 +126,8 @@
                 .attr("transform", "translate(-10,0)rotate(-45)")
                 .style("text-anchor", "end")
 
-
-            // svg.append("g")
-            // .call(xAxis)
+            svg.append("g")
+            .call(xAxis)
 
             svg.append("g")
             .call(yAxis)
