@@ -7,7 +7,6 @@
     </div>
     <input type="range" min="2011" max="2020" value="2011" class="slider" id="dateRange"/>
     <div id="tooltip"></div>
-    <div id="annotation"></div>
     <div id="scene2">
     </div>
     <script>
@@ -24,7 +23,17 @@
             var dateSlider = document.getElementById("dateRange")
             var dateRangeText = document.getElementById("dateRangeText")
             var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
-            var annotation = d3.select("#annotation").attr("pointer-events", "none")
+            var annotation = d3.select("#scene2").append("div")
+                    .attr("id", "annotation")
+                    .attr("pointer-events", "none")                    
+                    .style("opacity", 0)
+                    .style("position", "absolute")
+                    .style("background-color", "lightgray")
+                    .style("border", "1px solid black")
+                    .style("left", "500px")
+                    .style("top", "400x")
+                    .style("max-width", "400px")
+                    .style("padding", "10px")
 
             d3.selectAll("#ice").on("change", function() {
                 filteredData = data.filter((n) => { return parseInt(n.year) <= parseInt(`${dateRangeText.innerHTML}`) });
@@ -68,8 +77,7 @@
                 if (parseInt(dateRangeText.innerHTML) == 2011) {
                     annotation
                     .style("opacity", 1)
-                    .html(`Toggle the checkbox above to see the difference between Internal Combustion Engine vehicles and Electric Vehicles.`)
-                } 
+                    .html(`Toggle the checkbox above to see the difference between Internal Combustion Engine vehicles and Electric Vehicles.<br/><br/>ICE vehicles have lower efficency than their electric counterparts.`)
                 // else if (parseInt(dateRangeText.innerHTML) >= 2002 && parseInt(dateRangeText.innerHTML) < 2011) {
                 //     // add another notation to the screen indicating there were no EVs made during this year
                 //     annotation
@@ -87,10 +95,10 @@
                 //     annotation
                 //     .style("opacity", 1)
                 //     .html(`There are many more electric vehicles being produced today. We can also see that the efficency has increased since they were first released.`)
-                // } else {
-                //     annotation
-                //     .style("opacity", 0)
-                // }
+                } else {
+                    annotation
+                    .style("opacity", 0)
+                }
 
                 var fuelTypeCount = []
                 var legendObject = []
