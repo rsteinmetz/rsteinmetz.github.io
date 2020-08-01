@@ -265,7 +265,7 @@
                     .style("top", "900px")
                     .style("max-width", "400px")
                     .style("padding", "10px")
-                    .html(`You would save $${lastGas.value - lastFast.value} per year using a fast charging station and $${lastGas.value - lastHome.value} per year charging at home.`)
+                    .html(`You would save $${(lastGas.value - lastFast.value).toFixed(0)} per year using a fast charging station and $${(lastGas.value - lastHome.value).toFixed(0)} per year charging at home.`)
 
         }
 
