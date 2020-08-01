@@ -1,11 +1,11 @@
 <div id="inner">
     <div class="align-center">
-        Adjust the date to see how the efficency of Electric Vehicles has increased over time.
+        <input id="ice" type="checkbox" checked> Include Internal Combustion Engine Cars
     </div>
     <div class="align-center">
-        <span id="dateRangeText">1998</span>
+        <span id="dateRangeText">2011</span>
     </div>
-    <input type="range" min="1998" max="2020" value="1998" class="slider" id="dateRange"/>
+    <input type="range" min="2011" max="2020" value="2011" class="slider" id="dateRange"/>
     <div id="tooltip"></div>
     <div id="annotation"></div>
     <div id="scene2">
@@ -18,7 +18,7 @@
                 bottom: 70,
                 left: 60
             }
-            var width = 1600 - margin.left - margin.right
+            var width = 1400 - margin.left - margin.right
             var height = 900 - margin.top - margin.bottom 
             var data = []
             var filteredData = []
@@ -27,12 +27,27 @@
             var tooltip = d3.select("#tooltip").attr("pointer-events", "none")
             var annotation = d3.select("#annotation").attr("pointer-events", "none")
 
-            dateSlider.oninput = function() {
-            dateRangeText.innerHTML = this.value
+            $(":checkbox").change(function(e) {
+                filteredData = data.filter((n) => { return parseInt(n.year) <= parseInt(`${dateRangeText.innerHTML}`) });
+                if (this.id == "ice") {
+                    if (this.checked == false) {
+                        filteredData = filteredData.filter((n) => { return n.fuelType == "Electricity"})
+                    }  
+                } 
+                updateChart();
+                // console.log(this.checked);
+                // console.log(this.id)
+                // alert("change " + this.checked);
+            })
 
-            filteredData = data.filter((n) => { return n.year.toString() == `${this.value.toString()}` })
-            updateChart()
-        }
+            dateSlider.oninput = function() {
+                dateRangeText.innerHTML = this.value
+
+                filteredData = data.filter((n) => { return parseInt(n.year) <= parseInt(`${this.value.toString()}`) })
+                updateChart()
+            }
+
+            
 
         // initialize svg canvas
         var svg = d3
@@ -49,36 +64,36 @@
                 svg.exit().remove()
                 d3.select("g").selectAll("*").remove()
 
-                if (parseInt(dateRangeText.innerHTML) == 1998) {
+                if (parseInt(dateRangeText.innerHTML) == 2011) {
                     annotation
                     .style("opacity", 1)
-                    .html(`Adjust the date to see how the fuel efficency of electric vehicles has changed over time.`)
-
-                } else if (parseInt(dateRangeText.innerHTML) >= 2002 && parseInt(dateRangeText.innerHTML) < 2011) {
-                    // add another notation to the screen indicating there were no EVs made during this year
-                    annotation
-                    .style("opacity", 1)
-                    .html(`No new electric vehicles were produced in the early to mid 2000's.`)
-                } else if (parseInt(dateRangeText.innerHTML) == 2012) { 
-                    annotation
-                    .style("opacity", 1)
-                    .html(`In 2012 we can see more car manufactuerers producing electric vehicles. We can also see that compared to the prior iterations the efficency is increasing as well.`)
-                } else if (parseInt(dateRangeText.innerHTML) == 2013) {
-                    annotation
-                    .style("opacity", 1)
-                    .html(`In 2013, the technology is getting more mature and we can see an increase in efficency.`)
-                } else if (parseInt(dateRangeText.innerHTML) == 2020) {
-                    annotation
-                    .style("opacity", 1)
-                    .html(`There are many more electric vehicles being produced today. We can also see that the efficency has increased since they were first released.`)
-                } else {
-                    annotation
-                    .style("opacity", 0)
-                }
+                    .html(`Toggle the checkbox above to see the difference between Internal Combustion Engine vehicles and Electric Vehicles.`)
+                } 
+                // else if (parseInt(dateRangeText.innerHTML) >= 2002 && parseInt(dateRangeText.innerHTML) < 2011) {
+                //     // add another notation to the screen indicating there were no EVs made during this year
+                //     annotation
+                //     .style("opacity", 1)
+                //     .html(`No new electric vehicles were produced in the early to mid 2000's.`)
+                // } else if (parseInt(dateRangeText.innerHTML) == 2012) { 
+                //     annotation
+                //     .style("opacity", 1)
+                //     .html(`In 2012 we can see more car manufactuerers producing electric vehicles. We can also see that compared to the prior iterations the efficency is increasing as well.`)
+                // } else if (parseInt(dateRangeText.innerHTML) == 2013) {
+                //     annotation
+                //     .style("opacity", 1)
+                //     .html(`In 2013, the technology is getting more mature and we can see an increase in efficency.`)
+                // } else if (parseInt(dateRangeText.innerHTML) == 2020) {
+                //     annotation
+                //     .style("opacity", 1)
+                //     .html(`There are many more electric vehicles being produced today. We can also see that the efficency has increased since they were first released.`)
+                // } else {
+                //     annotation
+                //     .style("opacity", 0)
+                // }
 
                 var fuelTypeCount = []
                 var legendObject = []
-                var unique = [...new Set(filteredData.map(item => item.make))];
+                var unique = [...new Set(filteredData.map(item => item.yaer))];
                 for(var i = 0; i < unique.length; i++) {
                     var count = 0
                     for(var n = 0; n < filteredData.length; n++) {
@@ -90,10 +105,10 @@
                 }
                 graphData = fuelTypeCount.sort((function(a,b) { return b.count > a.count ? 1 : -1}))
                 temp = legendObject.slice()
-                legendObject = temp.sort((a,b) => (a.make > b.make) ? 1 : ((b.make > a.make) ? -1 : 0)); 
+                legendObject = temp.sort((a,b) => (a.year > b.year) ? 1 : ((b.year > a.year) ? -1 : 0)); 
 
                 // create legend
-                var uniqueAll = [...new Set(data.map(item => item.make))];
+                var uniqueAll = [...new Set(data.map(item => item.year))];
                 var color = d3.scaleOrdinal()
                 .domain(uniqueAll)
                 .range(d3.schemeCategory10)
@@ -109,7 +124,7 @@
                     d3
                         .scaleLinear()
                         .range([0, width])
-                        .domain([20,224.8])
+                        .domain([0,250])
 
                     // add x axis ucity
                     svg.append("g")
@@ -129,8 +144,8 @@
 
                     // create y axis
                     var y = d3.scaleLinear()
-                        .domain([0,220])
-                        .range([height, 0]);
+                        .domain([0,250])
+                        .range([height, 0])
 
                     // add y axis
                     svg.append("g").call(d3.axisLeft(y))
@@ -142,7 +157,7 @@
                     .remove()
 
                     // create bars
-                    svg.selectAll("rect")
+                    svg.selectAll("circle")
                     .data(filteredData)
                     .enter()
                     .append("circle")
@@ -151,38 +166,38 @@
                         .style("opacity", 1)
                         .style("left", (d3.event.pageX)+"px")
                         .style("top", (d3.event.pageY+100)+"px")
-                        .html(`Make: ${d.make}<br/>Model: ${d.model}<br/>City Efficency: ${d.UCity}<br/>Highway Efficency: ${d.UHighway}`)
+                        .html(`Make: ${d.make}<br/>Model: ${d.model}<br/>City Efficency: ${d.UCity}<br/>Highway Efficency: ${d.UHighway}<br/>Year: ${d.year}`)
                     })
                     .on("mouseout", function(d,i) {
                         tooltip
                         .style("opacity", 0)
                     })
-                    .attr("cx", function(d) { return x(d.UHighway)})
-                    .attr("cy", function(d) { return y(d.UCity)})
+                    .attr("cx", function(d) { return x(d.UCity)})
+                    .attr("cy", function(d) { return y(d.UHighway)})
                     .attr("r", 10)
-                    .style("fill", function(d) { return color(d.make) })
+                    .style("fill", function(d) { return color(d.year) })
 
                     var size = 20
                     svg
                     .selectAll("mydots")
-                    .data(legendObject)
+                    .data(uniqueAll)
                     .enter()
                     .append("rect")
                     .attr("x", 1200 + size*1.2)
                     .attr("y", function(d,i){ return 400+(i*(size+5))}) // 100 is where the first dot appears. 25 is the distance between dots
                     .attr("width", size)
                     .attr("height", size)
-                    .style("fill", function(d) { return color(d.make) })
+                    .style("fill", function(d) { return color(d) })
         
                     svg
                     .selectAll("mylabels")
-                    .data(legendObject)
+                    .data(uniqueAll)
                     .enter()
                     .append("text")
                     .attr("x", 1225 + size)
                     .attr("y", function(d, i) { return 400+(i*(size+5) + (size/2))})
-                    .style("fill", function(d) { return color(d.make) })
-                    .text(function(d) { return d.make})
+                    .style("fill", function(d) { return color(d.year) })
+                    .text(function(d) { return d})
                     .attr("text-anchor", "left")
                     .style("alignment-baseline", "middle")
             }
@@ -191,19 +206,21 @@
             d3
             .csv("https://raw.githubusercontent.com/rsteinmetz/rsteinmetz.github.io/master/cs-498/data/vehicles.csv")
             .then((d) => {
-                data = d.filter((n) => { return n.fuelType == "Electricity" 
-                && (n.make == "Audi" 
-                || n.make == "BMW" 
-                || n.make == "Chevrolet"
-                || n.make == "Hyundai"
-                || n.make == "Kia"
-                || n.make == "Nissan"
-                || n.make == "Porsche"
-                || n.make == "Tesla"
-                || n.make == "Volkswagen"
-                || n.make == "Honda")
-            })
-                filteredData = data.filter((n) => { return n.year == "1998"; })
+                data = d.filter((n) => { return parseInt(n.year) >= 2011 && parseInt(n.year) < 2021 })
+                filteredData = data.filter((n) => { return parseInt(n.year) == 2011})
+            //     data = d.filter((n) => { return n.fuelType == "Electricity" 
+            //     && (n.make == "Audi" 
+            //     || n.make == "BMW" 
+            //     || n.make == "Chevrolet"
+            //     || n.make == "Hyundai"
+            //     || n.make == "Kia"
+            //     || n.make == "Nissan"
+            //     || n.make == "Porsche"
+            //     || n.make == "Tesla"
+            //     || n.make == "Volkswagen"
+            //     || n.make == "Honda")
+            // })
+                //filteredData = data.filter((n) => { return n.year == "1998"; })
                 updateChart()
             })
         })
