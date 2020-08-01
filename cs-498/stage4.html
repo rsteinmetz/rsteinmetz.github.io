@@ -21,12 +21,12 @@
         var startTime = document.getElementById("dateRangeStartText")
         var endTime = document.getElementById("dateRangeEndText")
         $("#dateRangeStartText").text(baseDate.toLocaleDateString("en-US"))
-        $("#dateRangeEndText").text(new Date(baseDate.setDate(baseDate.getDate() + 90)).toLocaleDateString("en-US"))
+        $("#dateRangeEndText").text(new Date(baseDate.setDate(baseDate.getDate() + 30)).toLocaleDateString("en-US"))
 
         stockSlider.oninput = function() {
             var currentStart = new Date(startTime.textContent)
             var newStartDate = new Date(addDays(new Date(currentStart), this.value));
-            var newEndDate = new Date(addDays(new Date(newStartDate), 90))
+            var newEndDate = new Date(addDays(new Date(newStartDate), 30))
 
             $("#dateRangeStartText").text(newStartDate.toLocaleDateString("en-US"))
             $("#dateRangeEndText").text(newEndDate.toLocaleDateString("en-US"))
@@ -135,13 +135,6 @@
                 .data(filteredData)
                 .join("g")
                 .attr("transform", d => `translate(${x(d.date)},0)`);
-
-            // // exit the old elemeents
-            // d3.selectAll("line")
-            // .exit()
-            // //.transition(t)
-            // // .attr("y", 0)
-            // .remove();
 
             g.append("line")
             .attr("y1", d => y(d.low))
