@@ -196,6 +196,41 @@
                         .style("text-anchor", "middle")
                         .text("Stock Price");
 
+                if (new Date(currentDate).toISOString().slice(0,10) >= new Date("2020-04-01").toISOString().slice(0,10)) {
+                    svg
+                        .append("g")
+                        .append("circle")
+                        .attr("r", 25)
+                        .attr("stroke-width", 5)
+                        .attr("stroke", "black")
+                        .attr("fill", "none")
+                        .attr("stroke", "black")
+                        .attr("cx", 600)
+                        .attr("cy", 650)
+
+                        svg
+                        .append("g")
+                        .append("text")
+                        .attr("x", 500)
+                        .attr("y", 600)
+                        .attr("fill", "black")
+                        .text("Model Y Released")
+
+
+                var annotation = d3.select("#scene4").append("div")
+                    .attr("id", "annotation")
+                    .attr("pointer-events", "none")                    
+                    .style("opacity", 1)
+                    .style("position", "absolute")
+                    .style("background-color", "lightgray")
+                    .style("border", "1px solid black")
+                    .style("left", "400px")
+                    .style("top", "800px")
+                    .style("max-width", "400px")
+                    .style("padding", "10px")
+                    .html(`When the Model Y was released you can see the impact on the stock price.`)
+
+                }
 
         }
 
