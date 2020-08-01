@@ -65,9 +65,17 @@
                 return f.date.toISOString().slice(0,10) <= new Date(currentDate).toISOString().slice(0,10)
                 })
             filteredData = _.sortBy(filteredData, 'date')
-            console.log(data)
-            console.log("min", d3.min(data, d => d.low))
-            console.log("max", d3.max(data, d => d.high))
+
+            var min = 0;
+            var max = 0;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].low < min) {
+                    min = data[i].low;
+                }
+                if (data[i].high > max) {
+                    max = data[i].high
+                }
+            }
 
             var formatDate = d3.utcFormat("%B %-d, %Y")
             var formatValue = d3.format(".2f")
@@ -190,19 +198,19 @@
         // grab dataset
         d3
             .csv("https://raw.githubusercontent.com/rsteinmetz/rsteinmetz.github.io/master/cs-498/data/tesla-stock1.csv")
-            .then((d) => {
+            .then((results) => {
                 var parseDate = d3.utcParse("%Y-%m-%d");
-                var a = [];
-                for (var i = 0; i < d.length; i++) {
-                    a.push({
-                        date: parseDate(d[i].date),
-                        high: +d[i].high,
-                        low: +d[i].low,
-                        open: +d[i].open,
-                        close: +d[i].close
-                    })
-                }
-                data = _.sortBy(a, 'date');
+                results.forEach(function(d) {      
+                    d.date = parseDate(d.date);
+                    d.high = parseInt(d.high.trim().substring(0, d.high.indexOf(".")).replace(",",""))
+                    d.low = parseInt(d.low.trim().substring(0, d.low.indexOf(".")).replace(",",""))
+                    d.open = parseInt(d.open.trim().substring(0, d.open.indexOf(".")).replace(",",""))
+                    if (isNaN(d.open)) {
+                        d.open = d.low
+                    }
+                    d.close = parseInt(d.close.trim().substring(0, d.close.indexOf(".")).replace(",",""))
+                });
+                data = _.sortBy(results, 'date');
                 updateChart()
             })
     </script>
