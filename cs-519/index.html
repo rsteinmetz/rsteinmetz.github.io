@@ -1,0 +1,72 @@
+<link rel="stylesheet" href="index.css">
+<script type="module">
+import * as viewer from './viewer.js'
+
+let nrrdCanvas
+
+const init = () => {
+
+        const file = "foot_256x256x256_uint8.raw"
+        const progressText = document.querySelector("#loadingProgressBar")
+
+        progressText.textContent = "Downloading (0%)"
+
+        fetch(file)
+                .then(res => {
+                        if (!res.ok) {
+                                progressText.textContent = "Error loading NRRD file. Please refresh page."
+                        }
+
+                        const size = res.headers.get('Content-Length')
+                        const array = new Uint8Array(size)
+
+                        const reader = res.body.getReader()
+                        let receivedBytes = 0
+
+                        return reader.read().then(async function processChunk(result) {
+                                if (result.done) {
+                                        progressText.textContent = "Download Complete"
+                                        return array.buffer
+                                }
+
+                                array.set(result.value, receivedBytes)
+                                receivedBytes += result.value.length
+
+                                const pct = Math.round(100*receivedBytes/size)
+                                progressText.textContent = `Downloading (${pct}%)`
+
+                                return reader.read().then(processChunk)
+                        }).then(data => {
+                                progressText.style.display = 'none'
+                                document.querySelector('#nrrd').style.display = 'inline-block'
+                                nrrdCanvas = viewer.container(document.querySelector('#nrrd'))
+                                nrrdCanvas.uploadData(new Uint8Array(data), 256, 256, 256, 1, 1, 1).isovalue(0.05)
+                        })
+                })
+
+        document.querySelector('#isovalue_select').addEventListener('input', e => nrrdCanvas.isovalue(e.target.value))
+}
+
+document.addEventListener('DOMContentLoaded', init)
+</script>
+
+<div id="header" class="text">
+        Visualization  C-arm x-ray scan of a human foot.
+</div>
+<div id="header" class="text">
+        Data Source : Philips Research, Hamburg, Germany 
+</div>
+<div id="header" class="text">
+        NRRD File Obtained From : <a href="https://klacansky.com/open-scivis-datasets/">https://klacansky.com/open-scivis-datasets/</a>
+</div>
+
+<div id="loadingProgressBar" class="text">Loading...</div>
+
+<br/><br/>
+<div id="nrrdContainer">
+        <div id="header">
+                <label><span>Isovalue:</span><input id="isovalue_select" type="range" min="0.05" max="0.5" step="0.01" value="0.05"></label>
+        </div>
+        <br/>
+        <canvas id="nrrd" width="800" height="800"></canvas>
+</div>
