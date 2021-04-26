@@ -1,0 +1,42 @@
+html {
+    background-color: black;
+}
+
+body {
+    text-align: center;
+}
+
+.text {
+    color: white;
+    padding-top: 25px;
+    font-size: x-large;
+    text-align: center;
+}
+
+label span {
+    color: white;
+}
+
+#progress {
+    display: inline-block;
+}
+
+#nrrd {
+    border: 1px solid white;
+}
+
+/* 
+#ui {
+    display: none;
+    text-align: center;
+}
+
+#ui #progress, #ui canvas {
+    display: inline-block;
+    width: 800px;
+}
+
+#ui #progress {
+    height: 800px;
+    line-height: 800px;
+} */
